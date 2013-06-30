@@ -308,6 +308,11 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
 
 
             if (!nonAliasedFields.isEmpty() || !aliasedFieldStore.isEmpty() || !unknownFields.isEmpty()) {
+               int aliasedFieldsCount = 0;
+               for (Map<String, Set> fieldLocalMap : aliasedFieldStore) {
+                  aliasedFieldsCount += fieldLocalMap.get(fieldKey).size();
+               }
+
                print("At Method "+m);
                String result = new StringBuilder()
                   .append("nonAliasedFields: ")
@@ -319,8 +324,8 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
                   .append("aliasedFieldStore: ")
                   .append(aliasedFieldStore.toString())
                   .append("\n")
-                  .append("aliasedFieldStore size: ")
-                  .append(aliasedFieldStore.size())
+                  .append("aliasedFields size: ")
+                  .append(aliasedFieldsCount)
                   .append("\n")
                   .append("unknownFields: ")
                   .append(unknownFields.toString())
