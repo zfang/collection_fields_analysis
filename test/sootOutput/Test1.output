@@ -1,0 +1,7 @@
+[CollectionFieldsAnalysis] At Method <Test1: void main(java.lang.String[])>
+[CollectionFieldsAnalysis] nonAliasedFields: [1(r2):<Test1: java.util.List f1>, 1(r2):<Test1: java.util.List f4>, 1(r2):<Test1: java.util.List f6>, 1(r2):<Test1: java.util.List f2>, 1(r2):<Test1: java.util.List f3>]
+[CollectionFieldsAnalysis] nonAliasedFields size: 5
+[CollectionFieldsAnalysis] mayAliasedFieldStore: []
+[CollectionFieldsAnalysis] mayAliasedFieldStore size: 0
+[CollectionFieldsAnalysis] unknownFields: [1(r2):<Test1: java.util.List f5>]
+[CollectionFieldsAnalysis] unknownFields size: 1

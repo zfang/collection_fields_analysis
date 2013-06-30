@@ -1,2 +1,2 @@
-collection_field_analysis
+collection_fields_analysis
 =========================
