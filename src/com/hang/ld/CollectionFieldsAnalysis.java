@@ -234,7 +234,7 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
                            localMustAliasAnalysis, localNotMayAliasAnalysis);
                      addField(objectFieldPair, rightKey);
                   }
-                  // Check if rightop is Local and in newOrNullLocalCollections
+                  // Check if rightop is Local
                   else if (rightop instanceof Local) {
                      InstanceKey rightKey = new InstanceKey((Local) rightop, ds, m,
                            localMustAliasAnalysis, localNotMayAliasAnalysis);
@@ -258,12 +258,13 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
                            localMustAliasAnalysis, localNotMayAliasAnalysis);
                      addLocal(leftKey, rightKey);
                   }
-                  // Check if rightop is Local and in newOrNullLocalCollections
+                  // Check if rightop is Local 
                   else if (rightop instanceof Local) {
                      InstanceKey rightKey = new InstanceKey((Local) rightop, ds, m,
                            localMustAliasAnalysis, localNotMayAliasAnalysis);
                      addLocal(leftKey, rightKey);
                   }
+                  // Check if rightop is FieldRef 
                   else if (rightop instanceof FieldRef) {
                      InstanceKey rightopObject = 
                         (rightop instanceof InstanceFieldRef) ?
