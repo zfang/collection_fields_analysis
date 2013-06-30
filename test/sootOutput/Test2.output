@@ -1,7 +1,7 @@
 [CollectionFieldsAnalysis] At Method <Test2: void main(java.lang.String[])>
-[CollectionFieldsAnalysis] nonAliasedFields: [1(r2):<Test2: java.util.List f4>, 1(r2):<Test2: java.util.List f5>, 1(r2):<Test2: java.util.List f3>]
+[CollectionFieldsAnalysis] nonAliasedFields: [1(r2):<Test2: java.util.List f5>, 1(r2):<Test2: java.util.List f4>, 1(r2):<Test2: java.util.List f3>]
 [CollectionFieldsAnalysis] nonAliasedFields size: 3
-[CollectionFieldsAnalysis] mayAliasedFieldStore: [{field=[1(r2):<Test2: java.util.List f2>, 1(r2):<Test2: java.util.List f1>], local=[2($r5)]}]
-[CollectionFieldsAnalysis] mayAliasedFieldStore size: 1
+[CollectionFieldsAnalysis] aliasedFieldStore: [{field=[1(r2):<Test2: java.util.List f1>, 1(r2):<Test2: java.util.List f2>], local=[2($r5)]}]
+[CollectionFieldsAnalysis] aliasedFieldStore size: 1
 [CollectionFieldsAnalysis] unknownFields: [1(r2):<Test2: java.util.List f6>]
 [CollectionFieldsAnalysis] unknownFields size: 1

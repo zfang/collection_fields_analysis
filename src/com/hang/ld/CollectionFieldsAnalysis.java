@@ -44,9 +44,11 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
    static final String fieldKey = "field";
    static final String localKey = "local";
    Set<ObjectFieldPair> 
-           nonAliasedFields = new HashSet<ObjectFieldPair>(), 
-           unknownFields = new HashSet<ObjectFieldPair>();
-   List<Map<String, Set>> mayAliasedFieldStore = new LinkedList<Map<String, Set>>();
+      nonAliasedFields = new HashSet<ObjectFieldPair>(), 
+      unknownFields = new HashSet<ObjectFieldPair>();
+   List<Map<String, Set>> 
+      aliasedFieldStore = new LinkedList<Map<String, Set>>(),
+      mayAliasedFieldStore = new LinkedList<Map<String, Set>>();
    Set<InstanceKey> unknownLocals = new HashSet<InstanceKey>();
 
 	static LocalMustAliasAnalysis localMustAliasAnalysis;
@@ -100,7 +102,7 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
 
    private void removeField(ObjectFieldPair objectFieldPair) {
       if (!nonAliasedFields.remove(objectFieldPair) && !unknownFields.remove(objectFieldPair)) {
-         for (Map<String, Set> fieldLocalMap : mayAliasedFieldStore) {
+         for (Map<String, Set> fieldLocalMap : aliasedFieldStore) {
             Set<ObjectFieldPair> fieldSet = (Set<ObjectFieldPair>)fieldLocalMap.get(fieldKey);
             if (fieldSet.remove(objectFieldPair)) {
                return;
@@ -116,7 +118,7 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
          nonAliasedFields.add(objectFieldPair);
          return;
       }
-      for (Map<String, Set> fieldLocalMap : mayAliasedFieldStore) {
+      for (Map<String, Set> fieldLocalMap : aliasedFieldStore) {
          Set<InstanceKey> localSet = (Set<InstanceKey>)fieldLocalMap.get(localKey);
          if (localSet.contains(rightKey)) {
             Set<ObjectFieldPair> fieldSet = (Set<ObjectFieldPair>)fieldLocalMap.get(fieldKey);
@@ -134,10 +136,10 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
          Map<String, Set> fieldLocalMap = new HashMap<String, Set>();
          fieldLocalMap.put(localKey, localKeys);
          fieldLocalMap.put(fieldKey, new HashSet<ObjectFieldPair>());
-         mayAliasedFieldStore.add(fieldLocalMap);
+         aliasedFieldStore.add(fieldLocalMap);
          return;
       }
-      for (Map<String, Set> fieldLocalMap : mayAliasedFieldStore) {
+      for (Map<String, Set> fieldLocalMap : aliasedFieldStore) {
          Set<InstanceKey> localSet = (Set<InstanceKey>)fieldLocalMap.get(localKey);
          if (localSet.contains(rightKey)) {
             localSet.add(leftKey);
@@ -148,9 +150,16 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
    }
 
    private void addLocal(InstanceKey leftKey, ObjectFieldPair objectFieldPair) {
-      if (!nonAliasedFields.remove(objectFieldPair)) {
-         unknownFields.remove(objectFieldPair);
+
+      for (Map<String, Set> fieldLocalMap : aliasedFieldStore) {
+         Set<ObjectFieldPair> fieldSet = (Set<ObjectFieldPair>)fieldLocalMap.get(fieldKey);
+         if (fieldSet.contains(objectFieldPair)) {
+            Set<InstanceKey> localSet = (Set<InstanceKey>)fieldLocalMap.get(localKey);
+            localSet.add(leftKey);
+            return;
+         }
       }
+
       for (Map<String, Set> fieldLocalMap : mayAliasedFieldStore) {
          Set<ObjectFieldPair> fieldSet = (Set<ObjectFieldPair>)fieldLocalMap.get(fieldKey);
          if (fieldSet.contains(objectFieldPair)) {
@@ -167,7 +176,16 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
       Map<String, Set> fieldLocalMap = new HashMap<String, Set>();
       fieldLocalMap.put(localKey, localKeys);
       fieldLocalMap.put(fieldKey, fieldPairs);
-      mayAliasedFieldStore.add(fieldLocalMap);
+
+      if (nonAliasedFields.remove(objectFieldPair)) {
+         aliasedFieldStore.add(fieldLocalMap);
+         return;
+      }
+
+      if (unknownFields.remove(objectFieldPair)) {
+         mayAliasedFieldStore.add(fieldLocalMap);
+         return;
+      }
    }
 
    @Override
@@ -264,7 +282,7 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
          }
 
          if (g.getSuccsOf(d).size() == 0) {
-            Iterator<Map<String, Set>> iter = mayAliasedFieldStore.iterator();
+            Iterator<Map<String, Set>> iter = aliasedFieldStore.iterator();
             while (iter.hasNext()) {
                Set<ObjectFieldPair> fieldSet = (Set<ObjectFieldPair>)iter.next().get(fieldKey);
                if (fieldSet.isEmpty()) {
@@ -277,7 +295,18 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
                }
             }
 
-            if (!nonAliasedFields.isEmpty() || !mayAliasedFieldStore.isEmpty() || !unknownFields.isEmpty()) {
+            for (Map<String, Set> fieldLocalMap : mayAliasedFieldStore) {
+               Set<ObjectFieldPair> fieldSet = (Set<ObjectFieldPair>)fieldLocalMap.get(fieldKey);
+               if (fieldSet.size() == 1) {
+                  unknownFields.addAll(fieldSet);
+               }
+               else if (fieldSet.size() > 1) {
+                  aliasedFieldStore.add(fieldLocalMap);
+               }
+            }
+
+
+            if (!nonAliasedFields.isEmpty() || !aliasedFieldStore.isEmpty() || !unknownFields.isEmpty()) {
                print("At Method "+m);
                String result = new StringBuilder()
                   .append("nonAliasedFields: ")
@@ -286,11 +315,11 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
                   .append("nonAliasedFields size: ")
                   .append(nonAliasedFields.size())
                   .append("\n")
-                  .append("mayAliasedFieldStore: ")
-                  .append(mayAliasedFieldStore.toString())
+                  .append("aliasedFieldStore: ")
+                  .append(aliasedFieldStore.toString())
                   .append("\n")
-                  .append("mayAliasedFieldStore size: ")
-                  .append(mayAliasedFieldStore.size())
+                  .append("aliasedFieldStore size: ")
+                  .append(aliasedFieldStore.size())
                   .append("\n")
                   .append("unknownFields: ")
                   .append(unknownFields.toString())
