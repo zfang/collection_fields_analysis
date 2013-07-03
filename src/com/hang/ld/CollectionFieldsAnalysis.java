@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import soot.Body;
+import soot.EquivTo;
 import soot.G;
 import soot.Local;
 import soot.RefType;
@@ -28,18 +29,33 @@ import soot.jimple.DefinitionStmt;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.Stmt;
+import soot.jimple.toolkits.callgraph.CallGraph;
 import soot.jimple.toolkits.pointer.InstanceKey;
 import soot.jimple.toolkits.pointer.LocalMustAliasAnalysis;
 import soot.jimple.toolkits.pointer.LocalMustNotAliasAnalysis;
 import soot.tagkit.StringTag;
 import soot.toolkits.graph.ExceptionalUnitGraph;
+import soot.toolkits.scalar.ArraySparseSet;
+import soot.toolkits.scalar.FlowSet;
 import soot.toolkits.scalar.ForwardFlowAnalysis;
 
-public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connections> {
+public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, FlowSet> {
+
+   class ValueArraySparseSet extends ArraySparseSet {
+      public boolean contains(Object obj) {
+         for (int i = 0; i < numElements; i++)
+            if (elements[i] instanceof EquivTo
+                  && ((EquivTo) elements[i]).equivTo(obj))
+               return true;
+            else if (elements[i].equals(obj))
+               return true;
+         return false;
+      }
+   }
 
    public static final String TAG = "CollectionFieldsAnalysis";
 
-   Connections emptyConnection = new Connections();
+	CallGraph graph;
 
    static final String fieldKey = "field";
    static final String localKey = "local";
@@ -72,8 +88,10 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
       ALL_COLLECTION_NAMES.add("java.util.Set");
    }
 
-   public CollectionFieldsAnalysis(ExceptionalUnitGraph exceptionalUnitGraph) {
+   public CollectionFieldsAnalysis(ExceptionalUnitGraph exceptionalUnitGraph, CallGraph graph) {
       super(exceptionalUnitGraph);
+
+      this.graph = graph;
 
 		localMustAliasAnalysis = new LocalMustAliasAnalysis(
 				exceptionalUnitGraph, true);
@@ -188,8 +206,16 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
       }
    }
 
+   private void processSootMethod(ObjectFieldPair objectFieldPair, SootMethod method) {
+      // TODO
+   }
+
+   private void processSootMethod(InstanceKey leftKey, SootMethod method) {
+      // TODO
+   }
+
    @Override
-      protected void flowThrough(Connections in, Unit dd, Connections out) {
+      protected void flowThrough(FlowSet in, Unit dd, FlowSet out) {
          // Ignore constructors
          if (m.isConstructor()) {
             return;
@@ -240,6 +266,9 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
                            localMustAliasAnalysis, localNotMayAliasAnalysis);
                      addField(objectFieldPair, rightKey);
                   }
+                  else if (rightop instanceof SootMethod) {
+                     processSootMethod(objectFieldPair, (SootMethod)rightop);
+                  }
                   else {
                      unknownFields.add(objectFieldPair);
                   }
@@ -274,6 +303,9 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
                      SootField rightopField = ((FieldRef)rightop).getField();
                      ObjectFieldPair objectFieldPair = new ObjectFieldPair(rightopObject, rightopField);
                      addLocal(leftKey, objectFieldPair);
+                  }
+                  else if (rightop instanceof SootMethod) {
+                     processSootMethod(leftKey, (SootMethod)rightop);
                   }
                   else {
                      unknownLocals.add(leftKey);
@@ -341,25 +373,24 @@ public class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, Connecti
       }
 
    @Override
-      protected void copy(Connections source, Connections dest) {
+      protected void copy(FlowSet source, FlowSet dest) {
          source.copy(dest);
 
       }
 
    @Override
-      protected Connections entryInitialFlow() {
-         return emptyConnection.clone();
+      protected FlowSet entryInitialFlow() {
+         return new ValueArraySparseSet();
       }
 
    @Override
-      protected void merge(Connections in1, Connections in2, Connections out) {
-         Connections inc1 = (Connections) in1, inc2 = (Connections) in2, outc = (Connections) out;
-         inc1.union(inc2, outc); // Use union temporarily
+      protected void merge(FlowSet in1, FlowSet in2, FlowSet out) {
+         in1.union(in2, out); // Use union temporarily
       }
 
    @Override
-      protected Connections newInitialFlow() {
-         return emptyConnection.clone();
+      protected FlowSet newInitialFlow() {
+         return new ValueArraySparseSet();
       }
 
 }
