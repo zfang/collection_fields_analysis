@@ -1,7 +1,0 @@
-At Method <Test4: void main(java.lang.String[])>
-nonAliasedFields: []
-nonAliasedFields size: 0
-aliasedFieldStore: []
-aliasedFields size: 0
-unknownFields: [1(r2):<Test4: java.util.List f1>]
-unknownFields size: 1
