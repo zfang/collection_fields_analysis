@@ -1,0 +1,9 @@
+At Method <Test4: void test(java.util.List,java.util.List,java.util.List)>
+nonAliasedFields: []
+nonAliasedFields size: 0
+aliasedFieldStore: [{field=[1(r4):<Test4: java.util.List f4>, 1(r4):<Test4: java.util.List f2>], local=[2(r5)]}, {field=[1(r4):<Test4: java.util.List f6>, 1(r4):<Test4: java.util.List f5>], local=[-1(r0)]}]
+aliasedFields size: 4
+otherFields: [1(r4):<Test4: java.util.List f1>, 1(r4):<Test4: java.util.List f3>, 1(r4):<Test4: java.util.List f7>, 1(r4):<Test4: java.util.List f8>]
+otherFields size: 4
+unknownFields: []
+unknownFields size: 0
