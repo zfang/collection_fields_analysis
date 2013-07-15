@@ -22,13 +22,15 @@ public class FieldLocalStore {
    private Set<InstanceKey> externalLocals = new HashSet<InstanceKey>(),
           unknownLocals = new HashSet<InstanceKey>();
 
+   private Set<FieldLocalMap> aliasedFieldStore = new HashSet<FieldLocalMap>();
+
    public FieldLocalStore() {
       for (int i = 0, size = mayAliasedFieldStore.length; i < size; ++i) {
          mayAliasedFieldStore[i] = new LinkedList<FieldLocalMap>();
       }
    }
 
-   public void removeField(ObjectFieldPair objectFieldPair) {
+   private void removeField(ObjectFieldPair objectFieldPair) {
       if (!nonAliasedFields.remove(objectFieldPair) 
             && !externalFields.remove(objectFieldPair) 
             && !unknownFields.remove(objectFieldPair)) {
@@ -151,8 +153,15 @@ public class FieldLocalStore {
          addToStore(objectFieldPair, leftKey, 2);
          return;
       }
+      
+      // If we cannot find the field, we say it's external
+      addExternal(leftKey);
    }
 
+   public void addNonAliased(ObjectFieldPair field) {
+      nonAliasedFields.add(field);
+   }
+      
    public void addExternal(ObjectFieldPair field) {
       externalFields.add(field);
    }
@@ -168,10 +177,37 @@ public class FieldLocalStore {
    public void addUnknown(InstanceKey local) {
       unknownLocals.add(local);
    }
-      
-   public String toString() {
-      Set<FieldLocalMap> aliasedFieldStore = new HashSet<FieldLocalMap>();
 
+   public boolean isNonAliased(ObjectFieldPair field) {
+      return nonAliasedFields.contains(field);
+   }
+      
+   public boolean isAliased(InstanceKey local) {
+      for (FieldLocalMap fieldLocalMap : aliasedFieldStore) {
+         if (fieldLocalMap.getLocalSet().contains(local)) {
+            return true;
+         }
+      }
+      return false;
+   }
+      
+   public boolean isExternal(ObjectFieldPair field) {
+      return externalFields.contains(field);
+   }
+      
+   public boolean isExternal(InstanceKey local) {
+      return externalLocals.contains(local);
+   }
+      
+   public boolean isUnknown(ObjectFieldPair field) {
+      return unknownFields.contains(field);
+   }
+      
+   public boolean isUnknown(InstanceKey local) {
+      return unknownLocals.contains(local);
+   }
+
+   public void finalize() {
       for (FieldLocalMap fieldLocalMap : mayAliasedFieldStore[0]) {
          Set<ObjectFieldPair> fieldSet = fieldLocalMap.getFieldSet();
          if (fieldSet.size() == 1) {
@@ -184,25 +220,61 @@ public class FieldLocalStore {
 
       for (FieldLocalMap fieldLocalMap : mayAliasedFieldStore[1]) {
          Set<ObjectFieldPair> fieldSet = fieldLocalMap.getFieldSet();
-         if (fieldSet.size() == 1) {
-            externalFields.addAll(fieldSet);
-         }
-         else if (fieldSet.size() > 1) {
+         if (fieldSet.size() > 1) {
             aliasedFieldStore.add(fieldLocalMap);
+         }
+         else {
+            externalFields.addAll(fieldSet);
+            externalLocals.addAll(fieldLocalMap.getLocalSet());
          }
       }
 
       for (FieldLocalMap fieldLocalMap : mayAliasedFieldStore[2]) {
          Set<ObjectFieldPair> fieldSet = fieldLocalMap.getFieldSet();
-         if (fieldSet.size() == 1) {
-            unknownFields.addAll(fieldSet);
-         }
-         else if (fieldSet.size() > 1) {
+         if (fieldSet.size() > 1) {
             aliasedFieldStore.add(fieldLocalMap);
          }
+         else {
+            unknownFields.addAll(fieldSet);
+            unknownLocals.addAll(fieldLocalMap.getLocalSet());
+         }
       }
+   }
+      
+   public String toStringDebug() {
+      return new StringBuilder()
+         .append("nonAliasedFields: ")
+         .append(nonAliasedFields.toString())
+         .append("\n")
+         .append("mayAliasedFieldStore[0]: ")
+         .append(mayAliasedFieldStore[0].toString())
+         .append("\n")
+         .append("mayAliasedFieldStore[1]: ")
+         .append(mayAliasedFieldStore[1].toString())
+         .append("\n")
+         .append("mayAliasedFieldStore[2]: ")
+         .append(mayAliasedFieldStore[2].toString())
+         .append("\n")
+         .append("externalFields: ")
+         .append(externalFields.toString())
+         .append("\n")
+         .append("unknownFields: ")
+         .append(unknownFields.toString())
+         .append("\n")
+         .append("externalLocals: ")
+         .append(externalLocals.toString())
+         .append("\n")
+         .append("unknownLocals: ")
+         .append(unknownLocals.toString())
+         .append("\n")
+         .toString();
+   }
 
-      if (nonAliasedFields.isEmpty() && aliasedFieldStore.isEmpty() && externalFields.isEmpty()) {
+   public String toString() {
+      if (nonAliasedFields.isEmpty() 
+            && aliasedFieldStore.isEmpty() 
+            && externalFields.isEmpty()
+            && unknownFields.isEmpty()) {
          return "";
       }
 

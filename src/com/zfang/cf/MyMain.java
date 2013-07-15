@@ -73,7 +73,7 @@ class MySceneTransformer extends SceneTransformer {
 		for (SootMethod m : sortedMethods) {
 			if (m.hasActiveBody()) {
 				Body body = m.getActiveBody();
-            new CollectionFieldsAnalysis(new ExceptionalUnitGraph(body));
+            new MainCollectionFieldsAnalysis(new ExceptionalUnitGraph(body));
 			}
 		}
 	}

@@ -1,9 +1,9 @@
-At Method <Test3: void main(java.lang.String[])>
-nonAliasedFields: [1(r2):<Test3: java.util.List f1>, 1(r2):<Test3: java.util.List f5>]
-nonAliasedFields size: 2
-aliasedFieldStore: [{field=[1(r2):<Test3: java.util.List f2>, 1(r2):<Test3: java.util.List f4>], local=[4($r6), 7($r9), 6($r8)]}]
-aliasedFields size: 2
-otherFields: [1(r2):<Test3: java.util.List f3>]
-otherFields size: 1
-unknownFields: []
-unknownFields size: 0
+[Main]: At Method <Test3: void main(java.lang.String[])>
+[Main]: nonAliasedFields: [1(r2):<Test3: java.util.List f1>, 1(r2):<Test3: java.util.List f5>, 1(r2):<Test3: java.util.List f3>]
+[Main]: nonAliasedFields size: 3
+[Main]: aliasedFieldStore: [{field=[1(r2):<Test3: java.util.List f2>, 1(r2):<Test3: java.util.List f4>], local=[7($r9), 6($r8), 4($r6)]}]
+[Main]: aliasedFields size: 2
+[Main]: externalFields: []
+[Main]: externalFields size: 0
+[Main]: unknownFields: []
+[Main]: unknownFields size: 0

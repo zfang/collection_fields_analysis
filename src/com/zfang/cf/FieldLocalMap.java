@@ -7,8 +7,8 @@ import soot.jimple.toolkits.pointer.InstanceKey;
 
 public class FieldLocalMap {
 
-   Set<InstanceKey> localSet = new HashSet<InstanceKey>();
-   Set<ObjectFieldPair> fieldSet = new HashSet<ObjectFieldPair>();
+   private Set<InstanceKey> localSet = new HashSet<InstanceKey>();
+   private Set<ObjectFieldPair> fieldSet = new HashSet<ObjectFieldPair>();
 
 	public int hashCode() {
       int hashCode = 0;   

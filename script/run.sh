@@ -13,4 +13,4 @@ $libs/sootclasses.jar:../bin  \
 com.zfang.cf.MyMain -f j --d $project/sootOutput -p cg.spark enabled:true -w \
 --process-path $project/src --cp \
 $project/bin:$jre_path/rt.jar:$jre_path/jce.jar:$extra_cp --src-prec only-class --xml-attributes $@ \
-| sed -rn 's/\[CollectionFieldsAnalysis\] (.*)/\1/p'
+| sed -rn 's/\[(.*)CollectionFieldsAnalysis\] (.*)/[\1]: \2/p'
