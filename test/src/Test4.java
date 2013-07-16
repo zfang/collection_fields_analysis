@@ -3,12 +3,16 @@ import java.util.LinkedList;
 import java.util.ArrayList;
 
 public class Test4 {
-   public List f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12;
+   public List f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15;
    public static void main(String [] args) {
+      Test4 t1 = new Test4();
       List l1 = getList(true);
-      test(l1, getList(false), l1);
+      List l2 = l1;
+      t1.f1 = l2;
+      List l3 = t1.f2;
+      test(l1, getList(false), l1, l2, t1.f1, l3);
    }
-   public static void test(List p1, List p2, List p3) {
+   public static void test(List p1, List p2, List p3, List p4, List p5, List p6) {
       Test4 t1 = new Test4();
       List l1 = getList(true);
       List l2 = getList(false);
@@ -24,6 +28,9 @@ public class Test4 {
       t1.f10 = getList2(false);
       t1.f11 = getList3(false);
       t1.f12 = getList4(true);
+      t1.f13 = p4;
+      t1.f14 = p5;
+      t1.f15 = p6;
    }
 
    public static List getList(boolean flag) {
@@ -40,6 +47,6 @@ public class Test4 {
    }
 
    public static List getList4(boolean flag) {
-      return getList(flag);
+      return flag ? getList4(!flag) : getList(flag);
    }
 }

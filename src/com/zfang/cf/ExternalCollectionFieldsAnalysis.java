@@ -34,21 +34,6 @@ public class ExternalCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
       doAnalysis();
    }
 
-   @Override
-      protected void analyzeExternal(Object o, ParameterRef param) {
-         // TODO
-      }
-
-   @Override
-      protected void analyzeExternal(Object o, Stmt d) {
-      Iterator<Edge> it = Scene.v().getCallGraph().edgesOutOf(d);
-		while (it.hasNext()) {
-			Edge e = it.next();
-			SootMethod targetM = (SootMethod) e.getTgt();
-         listener.onAnalyzeExternal(targetM);
-      }
-   }
-
    public void print(Object obj) {
       print(TAG, obj);
    }
@@ -96,12 +81,11 @@ public class ExternalCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
                   fieldLocalStore.addLocal(leftKey, objectFieldPair);
                }
                else if (rightop instanceof ParameterRef) {
-                  // TODO
-                  fieldLocalStore.addExternal(leftKey);
+                  analyzeExternal(leftKey, (ParameterRef)rightop);
                }
                else if (rightop instanceof InvokeExpr) {
                   //fieldLocalStore.addExternal(leftKey);
-                  analyzeExternal(leftKey, d);
+                  analyzeExternal(leftKey, d, listener);
                }
                else {
                   fieldLocalStore.addUnknown(leftKey);
@@ -124,11 +108,9 @@ public class ExternalCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
          InstanceKey opKey = new InstanceKey((Local)op, d, m,
                localMustAliasAnalysis, localNotMayAliasAnalysis);
 
-         if (fieldLocalStore.isAliased(opKey) || fieldLocalStore.isExternal(opKey)) {
+         if (fieldLocalStore.isAliased(opKey) || fieldLocalStore.isExternal(opKey))
             listener.onExternal();
-         }
-         else if (fieldLocalStore.isUnknown(opKey)) {
+         else if (fieldLocalStore.isUnknown(opKey))
             listener.onUnknown();
-         }
       }
 }

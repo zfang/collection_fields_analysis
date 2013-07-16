@@ -1,19 +1,28 @@
 package com.zfang.cf;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import soot.Body;
 import soot.G;
+import soot.Local;
 import soot.RefType;
 import soot.Scene;
 import soot.SootClass;
+import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
+import soot.jimple.FieldRef;
+import soot.jimple.InstanceFieldRef;
 import soot.jimple.ParameterRef;
 import soot.jimple.Stmt;
+import soot.jimple.toolkits.callgraph.Edge;
+import soot.jimple.toolkits.pointer.InstanceKey;
 import soot.jimple.toolkits.pointer.LocalMustAliasAnalysis;
 import soot.jimple.toolkits.pointer.LocalMustNotAliasAnalysis;
 import soot.toolkits.graph.ExceptionalUnitGraph;
@@ -31,6 +40,9 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
    protected ExceptionalUnitGraph g;
 
    protected FieldLocalStore fieldLocalStore = new FieldLocalStore();
+
+   public static Map<SootMethod, CollectionVaribleState[]> parameterStates =
+      new HashMap<SootMethod, CollectionVaribleState[]>();
 
    protected List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierarchy()
       .getDirectImplementersOf(
@@ -50,6 +62,8 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
    protected CollectionFieldsAnalysis(ExceptionalUnitGraph exceptionalUnitGraph) {
       super(exceptionalUnitGraph);
 
+      this.parameterStates = parameterStates;
+
 		localMustAliasAnalysis = new LocalMustAliasAnalysis(
 				exceptionalUnitGraph, true);
 		localNotMayAliasAnalysis = new LocalMustNotAliasAnalysis(
@@ -66,6 +80,20 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
             || op instanceof soot.jimple.NewExpr);
    }
 
+   public ObjectFieldPair getObjectFieldPair(FieldRef fieldRef, Stmt ds) {
+      InstanceKey object = 
+         (fieldRef instanceof InstanceFieldRef) ?
+         new InstanceKey((Local) ((InstanceFieldRef)fieldRef).getBase(), ds, m,
+               localMustAliasAnalysis, localNotMayAliasAnalysis) : null;
+      SootField _field = ((FieldRef)fieldRef).getField();
+      return new ObjectFieldPair(object, _field);
+   }
+
+   public InstanceKey getInstanceKey(Local local, Stmt ds) {
+      return new InstanceKey((Local) local, ds, m,
+            localMustAliasAnalysis, localNotMayAliasAnalysis);
+   }
+
    protected void print(String TAG, Object obj) {
       String [] tokens = obj.toString().split("\n");
       for (String token : tokens) {
@@ -80,9 +108,54 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
       }
    }
 
-   abstract protected void analyzeExternal(Object o, ParameterRef param);
+   protected void analyzeExternal(Object o, ParameterRef param) {
+      ObjectFieldPair field = null;
+      InstanceKey local = null;
 
-   abstract protected void analyzeExternal(Object o, Stmt d);
+      if (o instanceof ObjectFieldPair) {
+         field = (ObjectFieldPair)o;
+         fieldLocalStore.removeField(field);
+      }
+      else if (o instanceof InstanceKey) {
+         local = (InstanceKey)o;
+      }
+
+      CollectionVaribleState [] states = parameterStates.get(m);
+
+      // If we don't know about the method
+      // We assume it's external
+      if (null == states) {
+         fieldLocalStore.addToStore(field, local, CollectionVaribleState.EXTERNAL);
+         return;
+      }
+
+      if (param.getIndex() >= states.length)
+         return;
+
+      CollectionVaribleState state = states[param.getIndex()];
+
+      switch(state) {
+         case ALIASED: 
+         case EXTERNAL: 
+         case UNKNOWN:
+         case NONALIASED:
+            fieldLocalStore.addToStore(field, local, state);
+            return;
+         default:
+            return;
+      }
+   }
+
+   protected void analyzeExternal(Object o, Stmt d, FieldLocalStoreUpdateListener listener) {
+      Iterator<Edge> it = Scene.v().getCallGraph().edgesOutOf(d);
+      while (it.hasNext()) {
+         Edge e = it.next();
+         SootMethod targetM = (SootMethod) e.getTgt();
+         listener.onAnalyzeExternal(targetM);
+      }
+      listener.finalize();
+   }
+
 
    abstract protected void collectData(Stmt d, Stmt ds);
 

@@ -19,8 +19,11 @@
 package com.zfang.cf;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 import soot.Body;
 import soot.G;
@@ -48,87 +51,61 @@ public class MyMain {
 class MySceneTransformer extends SceneTransformer {
 	protected CallGraph graph;
 
-	protected void internalTransform(String phaseName, Map options) {
-		graph = Scene.v().getCallGraph();
-		Chain<SootClass> classes = Scene.v().getApplicationClasses();
-		ArrayList<SootMethod> methods = new ArrayList<SootMethod>();
-		ArrayList<SootMethod> sortedMethods = new ArrayList<SootMethod>();
-		ArrayList<SootMethod> visitedMethods = new ArrayList<SootMethod>();
-		ArrayList<ArrayList<SootMethod>> circles = new ArrayList<ArrayList<SootMethod>>();
+   static boolean isJavaOrSunLibMethod(SootMethod method) {
+      return method.getDeclaringClass().toString().contains("java.") 
+         || method.getDeclaringClass().toString().contains("sun.");
+   }
 
-		for (SootClass c : classes) {
-			methods.addAll(c.getMethods());
-		}
+   @Override
+      protected void internalTransform(String phaseName, Map options) {
+         graph = Scene.v().getCallGraph();
+         Chain<SootClass> classes = Scene.v().getApplicationClasses();
+         ArrayList<SootMethod> methods = new ArrayList<SootMethod>();
+         Set<SootMethod> sortedMethods = new LinkedHashSet<SootMethod>();
 
-		for (SootMethod method : methods) {
-			if (method.hasActiveBody()
-					&& !sortedMethods.contains(method)
-					&& !(method.getDeclaringClass().toString()
-							.contains("java.") || method.getDeclaringClass()
-							.toString().contains("sun."))) {
-				findEdges(method, sortedMethods, visitedMethods, circles);
-			}
-		}
+         for (SootClass c : classes) {
+            methods.addAll(c.getMethods());
+         }
 
-		for (SootMethod m : sortedMethods) {
-			if (m.hasActiveBody()) {
-				Body body = m.getActiveBody();
-            new MainCollectionFieldsAnalysis(new ExceptionalUnitGraph(body));
-			}
-		}
-	}
+         for (SootMethod method : methods) {
+            if (method.hasActiveBody()
+                  && !sortedMethods.contains(method)
+                  && !(isJavaOrSunLibMethod(method))) {
+               findEdges(method, sortedMethods);
+            }
+         }
 
-	// Method to arrange the order of methods depending on the caller & callee
-	// relations
-	// if a calls b, b is stored earlier than a.
-	protected void findEdges(SootMethod m, ArrayList<SootMethod> sorted,
-			ArrayList<SootMethod> visited,
-			ArrayList<ArrayList<SootMethod>> circles) {
-		visited.add(m);
+         //G.v().out.println("[CollectionFieldsAnalysis] Sorted: " + sortedMethods);
 
-		Iterator<Edge> it = graph.edgesOutOf(m);
-		while (it.hasNext()) {
-			Edge e = it.next();
-			SootMethod targetM = (SootMethod) e.getTgt();
-			 if (targetM.getDeclaringClass().toString().contains("java.") ||
-			 targetM.getDeclaringClass().toString().contains("sun.")) {
-			 continue;
-			 }
+         for (SootMethod m : sortedMethods) {
+            if (m.hasActiveBody()) {
+               Body body = m.getActiveBody();
+               new MainCollectionFieldsAnalysis(new ExceptionalUnitGraph(body));
+            }
+         }
+      }
 
-			if (!sorted.contains(targetM)) {
-				// solve self-loop
-				if (targetM.equals(m)) {
-					ArrayList<SootMethod> circle = new ArrayList<SootMethod>();
-					circle.add(m);
-					circles.add(circle);
-				}
-				// solve circles
-				else if (visited.contains(targetM)) {
-					ArrayList<SootMethod> circle = new ArrayList<SootMethod>();
-					Iterator<SootMethod> it1 = visited.iterator();
-					whilebreak: while (it1.hasNext()) {
-						SootMethod mintheCircle = it1.next();
-						if (mintheCircle.equals(targetM)) {
-							circle.add(mintheCircle);
-							while (it1.hasNext()) {
-								mintheCircle = it1.next();
-								circle.add(mintheCircle);
-								if (mintheCircle.equals(m)) {
-									break whilebreak;
-								}
-							}
+   // Method to arrange the order of methods depending on the caller & callee
+   // relations
+   // if a calls b, a is stored earlier than b.
+   protected void findEdges(SootMethod m, Set<SootMethod> sorted) {
+      sorted.add(m);
 
-						}
-					}
-					if (!circles.contains(circle))
-						circles.add(circle);
-				}
-				// no self-loop or circles found
-				else {
-					findEdges(targetM, sorted, visited, circles);
-				}
-			}
-		}
-		sorted.add(m);
-	}
+      Iterator<Edge> it = graph.edgesOutOf(m);
+      while (it.hasNext()) {
+         Edge e = it.next();
+         SootMethod targetM = (SootMethod) e.getTgt();
+         if (isJavaOrSunLibMethod(targetM)) {
+            continue;
+         }
+
+         if (m.equals(targetM)) {
+            continue;
+         }
+
+         sorted.remove(targetM);
+
+         findEdges(targetM, sorted);
+      }
+   }
 }

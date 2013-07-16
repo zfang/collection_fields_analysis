@@ -1,8 +1,8 @@
 [Main]: At Method <Test1: void main(java.lang.String[])>
-[Main]: nonAliasedFields: [1(r2):<Test1: java.util.List f5>, 1(r2):<Test1: java.util.List f6>, 1(r2):<Test1: java.util.List f2>, 1(r2):<Test1: java.util.List f3>, 1(r2):<Test1: java.util.List f1>, 1(r2):<Test1: java.util.List f4>]
+[Main]: nonAliasedFields: [1(r2):<Test1: java.util.List f2>, 1(r2):<Test1: java.util.List f4>, 1(r2):<Test1: java.util.List f6>, 1(r2):<Test1: java.util.List f1>, 1(r2):<Test1: java.util.List f3>, 1(r2):<Test1: java.util.List f5>]
 [Main]: nonAliasedFields size: 6
-[Main]: aliasedFieldStore: []
-[Main]: aliasedFields size: 0
+[Main]: finalAliasedFieldStore: []
+[Main]: finalAliasedFieldsCount size: 0
 [Main]: externalFields: []
 [Main]: externalFields size: 0
 [Main]: unknownFields: []

@@ -5,11 +5,11 @@ for i in `cat $@ | sed -rn 's/.*nonAliasedFields size: ([0-9]+)/\1/p'`; do
 done
 echo "Total number of nonAliasedFields fields: $nonAliasedFields"
 
-aliasedFields=0
-for i in `cat $@ | sed -rn 's/.*aliasedFields size: ([0-9]+)/\1/p'`; do
-   aliasedFields=$(( $aliasedFields + $i ))
+finalAliasedFieldStore=0
+for i in `cat $@ | sed -rn 's/.*finalAliasedFieldStore size: ([0-9]+)/\1/p'`; do
+   finalAliasedFieldStore=$(( $finalAliasedFieldStore + $i ))
 done
-echo "Total number of aliasedFields fields: $aliasedFields"
+echo "Total number of finalAliasedFieldStore fields: $finalAliasedFieldStore"
 
 externalFields=0
 for i in `cat $@ | sed -rn 's/.*externalFields size: ([0-9]+)/\1/p'`; do

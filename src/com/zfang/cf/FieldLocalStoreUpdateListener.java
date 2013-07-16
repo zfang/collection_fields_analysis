@@ -12,24 +12,22 @@ public class FieldLocalStoreUpdateListener {
    private Object obj;
    private FieldLocalStore store;
 
-   private boolean isExternal;
-   private boolean isUnknown;
+   private CollectionVaribleState state;
 
    private Set<SootMethod> methods = new HashSet<SootMethod>();
 
    public FieldLocalStoreUpdateListener(Object o, FieldLocalStore s) {
       obj = o;
       store = s;
-      isExternal = false;
-      isUnknown = false;
+      state = CollectionVaribleState.NONALIASED;
    }
 
    public void onExternal() {
-      isExternal = true;
+      state = CollectionVaribleState.getNewValue(state, CollectionVaribleState.EXTERNAL);
    }
 
    public void onUnknown() {
-      isUnknown = true;
+      state = CollectionVaribleState.getNewValue(state, CollectionVaribleState.UNKNOWN);
    }
 
    public void onAnalyzeExternal(SootMethod m) {
@@ -50,29 +48,35 @@ public class FieldLocalStoreUpdateListener {
    public void finalize() {
       if (obj instanceof ObjectFieldPair) {
          ObjectFieldPair field = (ObjectFieldPair)obj;
-         if (isExternal) {
-            store.addExternal(field);
-         }
-         else if (isUnknown) {
-            store.addUnknown(field);
-         }
-         else {
-            // non-aliased
-            store.addField(field, (InstanceKey)null);
+         switch (state) {
+            case EXTERNAL:
+               store.addExternal(field);
+               break;
+            case UNKNOWN:
+               store.addUnknown(field);
+               break;
+            case NONALIASED:
+               store.addField(field, (InstanceKey)null);
+               break;
+            default:
+               break;
          }
          return;
       }
       if (obj instanceof InstanceKey) {
          InstanceKey local = (InstanceKey)obj;
-         if (isExternal) {
-            store.addExternal(local);
-         }
-         else if (isUnknown) {
-            store.addUnknown(local);
-         }
-         else {
-            // non-aliased
-            store.addLocal(local, (InstanceKey)null);
+         switch (state) {
+            case EXTERNAL:
+               store.addExternal(local);
+               break;
+            case UNKNOWN:
+               store.addUnknown(local);
+               break;
+            case NONALIASED:
+               store.addLocal(local, (InstanceKey)null);
+               break;
+            default:
+               break;
          }
          return;
       }

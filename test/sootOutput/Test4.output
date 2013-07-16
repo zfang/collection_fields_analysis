@@ -1,9 +1,18 @@
-[Main]: At Method <Test4: void test(java.util.List,java.util.List,java.util.List)>
-[Main]: nonAliasedFields: [1(r4):<Test4: java.util.List f1>, 1(r4):<Test4: java.util.List f12>, 1(r4):<Test4: java.util.List f3>]
-[Main]: nonAliasedFields size: 3
-[Main]: aliasedFieldStore: [{field=[1(r4):<Test4: java.util.List f5>, 1(r4):<Test4: java.util.List f6>], local=[-1(r0)]}, {field=[1(r4):<Test4: java.util.List f4>, 1(r4):<Test4: java.util.List f2>], local=[2(r5)]}]
-[Main]: aliasedFields size: 4
-[Main]: externalFields: [1(r4):<Test4: java.util.List f7>, 1(r4):<Test4: java.util.List f10>, 1(r4):<Test4: java.util.List f8>, 1(r4):<Test4: java.util.List f11>, 1(r4):<Test4: java.util.List f9>]
-[Main]: externalFields size: 5
+[Main]: At Method <Test4: void main(java.lang.String[])>
+[Main]: nonAliasedFields: [1(r2):<Test4: java.util.List f1>]
+[Main]: nonAliasedFields size: 1
+[Main]: finalAliasedFieldStore: []
+[Main]: finalAliasedFieldsCount size: 0
+[Main]: externalFields: []
+[Main]: externalFields size: 0
+[Main]: unknownFields: []
+[Main]: unknownFields size: 0
+[Main]: At Method <Test4: void test(java.util.List,java.util.List,java.util.List,java.util.List,java.util.List,java.util.List)>
+[Main]: nonAliasedFields: [1(r7):<Test4: java.util.List f7>, 1(r7):<Test4: java.util.List f3>, 1(r7):<Test4: java.util.List f1>, 1(r7):<Test4: java.util.List f12>]
+[Main]: nonAliasedFields size: 4
+[Main]: finalAliasedFieldStore: [{field=[1(r7):<Test4: java.util.List f8>], local=[-3(r2)]}, {field=[1(r7):<Test4: java.util.List f13>], local=[-4(r3)]}, {field=[1(r7):<Test4: java.util.List f14>], local=[-5(r4)]}, {field=[1(r7):<Test4: java.util.List f5>, 1(r7):<Test4: java.util.List f6>], local=[-1(r0)]}, {field=[1(r7):<Test4: java.util.List f2>, 1(r7):<Test4: java.util.List f4>], local=[2(r8)]}]
+[Main]: finalAliasedFieldsCount size: 7
+[Main]: externalFields: [1(r7):<Test4: java.util.List f15>, 1(r7):<Test4: java.util.List f9>, 1(r7):<Test4: java.util.List f10>, 1(r7):<Test4: java.util.List f11>]
+[Main]: externalFields size: 4
 [Main]: unknownFields: []
 [Main]: unknownFields size: 0

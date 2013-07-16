@@ -1,14 +1,14 @@
 package com.zfang.cf;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import soot.jimple.toolkits.pointer.InstanceKey;
 
-public class FieldLocalMap {
+public class FieldLocalMap implements Cloneable {
 
-   private Set<InstanceKey> localSet = new HashSet<InstanceKey>();
-   private Set<ObjectFieldPair> fieldSet = new HashSet<ObjectFieldPair>();
+   private Set<InstanceKey> localSet = new LinkedHashSet<InstanceKey>();
+   private Set<ObjectFieldPair> fieldSet = new LinkedHashSet<ObjectFieldPair>();
 
 	public int hashCode() {
       int hashCode = 0;   
@@ -35,6 +35,15 @@ public class FieldLocalMap {
       return ((FieldLocalMap)obj).hashCode() == hashCode();
    }
 
+   public FieldLocalMap clone() {
+      FieldLocalMap clone = new FieldLocalMap();
+      for (InstanceKey local : localSet)
+         clone.addToLocalSet(local);
+      for (ObjectFieldPair field : fieldSet)
+         clone.addToFieldSet(field);
+      return clone;
+   }
+
    public Set<InstanceKey> getLocalSet() {
       return localSet;
    }
@@ -52,6 +61,15 @@ public class FieldLocalMap {
       if (null != field)
          fieldSet.add(field);
    }
+
+   public boolean containsField(ObjectFieldPair field) {
+      return fieldSet.contains(field);
+   }
+
+   public boolean containsLocal(InstanceKey local) {
+      return localSet.contains(local);
+   }
+
 
    public String toString() {
       return new StringBuilder()
