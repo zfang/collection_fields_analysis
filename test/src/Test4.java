@@ -3,7 +3,7 @@ import java.util.LinkedList;
 import java.util.ArrayList;
 
 public class Test4 {
-   public List f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15;
+   public List f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16;
    public static void main(String [] args) {
       Test4 t1 = new Test4();
       List l1 = getList(true);
@@ -31,6 +31,7 @@ public class Test4 {
       t1.f13 = p4;
       t1.f14 = p5;
       t1.f15 = p6;
+      t1.f16 = (List)new LinkedList().clone();
    }
 
    public static List getList(boolean flag) {

@@ -8,8 +8,8 @@
 [Main]: unknownFields: []
 [Main]: unknownFields size: 0
 [Main]: At Method <Test4: void test(java.util.List,java.util.List,java.util.List,java.util.List,java.util.List,java.util.List)>
-[Main]: nonAliasedFields: [1(r7):<Test4: java.util.List f7>, 1(r7):<Test4: java.util.List f3>, 1(r7):<Test4: java.util.List f1>, 1(r7):<Test4: java.util.List f12>]
-[Main]: nonAliasedFields size: 4
+[Main]: nonAliasedFields: [1(r7):<Test4: java.util.List f7>, 1(r7):<Test4: java.util.List f3>, 1(r7):<Test4: java.util.List f1>, 1(r7):<Test4: java.util.List f12>, 1(r7):<Test4: java.util.List f16>]
+[Main]: nonAliasedFields size: 5
 [Main]: finalAliasedFieldStore: [{field=[1(r7):<Test4: java.util.List f8>], local=[-3(r2)]}, {field=[1(r7):<Test4: java.util.List f13>], local=[-4(r3)]}, {field=[1(r7):<Test4: java.util.List f14>], local=[-5(r4)]}, {field=[1(r7):<Test4: java.util.List f5>, 1(r7):<Test4: java.util.List f6>], local=[-1(r0)]}, {field=[1(r7):<Test4: java.util.List f2>, 1(r7):<Test4: java.util.List f4>], local=[2(r8)]}]
 [Main]: finalAliasedFieldStore size: 7
 [Main]: externalFields: [1(r7):<Test4: java.util.List f15>, 1(r7):<Test4: java.util.List f9>, 1(r7):<Test4: java.util.List f10>, 1(r7):<Test4: java.util.List f11>]

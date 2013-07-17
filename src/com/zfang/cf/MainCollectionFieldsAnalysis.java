@@ -45,7 +45,7 @@ public class MainCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
             if (!ALL_COLLECTION_NAMES.contains(leftop.getType().toString())) {
                return;
             }
-            // print(TAG, String.format("%s = %s; rightop class: %s",
+            // print(String.format("%s = %s; rightop class: %s",
             //          leftop.toString(), rightop.toString(), rightop.getClass().getName()));
             // Field references
             if (leftop instanceof FieldRef) {
@@ -66,8 +66,7 @@ public class MainCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
                   analyzeExternal(objectFieldPair, (ParameterRef)rightop);
                }
                else if (rightop instanceof InvokeExpr) {
-                  analyzeExternal(objectFieldPair, d, 
-                        new FieldLocalStoreUpdateListener(objectFieldPair, fieldLocalStore));
+                  analyzeExternal(d, new FieldLocalStoreUpdateListener(objectFieldPair, fieldLocalStore));
                }
                else {
                   fieldLocalStore.addUnknown(objectFieldPair);
@@ -96,8 +95,7 @@ public class MainCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
                   analyzeExternal(leftKey, (ParameterRef)rightop);
                }
                else if (rightop instanceof InvokeExpr) {
-                  analyzeExternal(leftKey, d, 
-                        new FieldLocalStoreUpdateListener(leftKey, fieldLocalStore));
+                  analyzeExternal(d, new FieldLocalStoreUpdateListener(leftKey, fieldLocalStore));
                }
                else {
                   fieldLocalStore.addUnknown(leftKey);

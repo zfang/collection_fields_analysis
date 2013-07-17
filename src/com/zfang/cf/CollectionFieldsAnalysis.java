@@ -19,6 +19,8 @@ import soot.Unit;
 import soot.Value;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
+import soot.jimple.InstanceInvokeExpr;
+import soot.jimple.InvokeExpr;
 import soot.jimple.ParameterRef;
 import soot.jimple.Stmt;
 import soot.jimple.toolkits.callgraph.Edge;
@@ -57,6 +59,8 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
       ALL_COLLECTION_NAMES.add("java.util.List");
       ALL_COLLECTION_NAMES.add("java.util.SortedSet");
       ALL_COLLECTION_NAMES.add("java.util.Set");
+      // Add class Object in case of casting and clone
+      ALL_COLLECTION_NAMES.add("java.lang.Object"); 
    }
 
    protected CollectionFieldsAnalysis(ExceptionalUnitGraph exceptionalUnitGraph) {
@@ -108,6 +112,10 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
       }
    }
 
+   private void print(Object obj) {
+      print(TAG, obj);
+   }
+
    protected void analyzeExternal(Object o, ParameterRef param) {
       ObjectFieldPair field = null;
       InstanceKey local = null;
@@ -146,7 +154,19 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
       }
    }
 
-   protected void analyzeExternal(Object o, Stmt d, FieldLocalStoreUpdateListener listener) {
+   protected void analyzeExternal(Stmt d, FieldLocalStoreUpdateListener listener) {
+      // Take care of clone case, which returns a shallow copy
+      // and we say the shallow copies are non-aliased
+      InvokeExpr invoke = d.getInvokeExpr(); 
+      if (invoke.getMethod().getName().equals("clone")) {
+         if (invoke instanceof InstanceInvokeExpr) {
+            if (ALL_COLLECTION_NAMES.contains(
+                     ((InstanceInvokeExpr)invoke).getBase().getType().toString())) {
+               listener.finalize();
+            }
+         }
+      }
+
       Iterator<Edge> it = Scene.v().getCallGraph().edgesOutOf(d);
       while (it.hasNext()) {
          Edge e = it.next();

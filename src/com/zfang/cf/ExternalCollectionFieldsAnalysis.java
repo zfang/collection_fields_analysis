@@ -47,45 +47,32 @@ public class ExternalCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
             if (!ALL_COLLECTION_NAMES.contains(leftop.getType().toString())) {
                return;
             }
-            // print(TAG, String.format("%s = %s; rightop class: %s",
+            // print(String.format("%s = %s; rightop class: %s",
             //          leftop.toString(), rightop.toString(), rightop.getClass().getName()));
             // Local variables
             if (leftop instanceof Local) {
-               InstanceKey leftKey = new InstanceKey((Local) leftop, ds, m,
-                     localMustAliasAnalysis, localNotMayAliasAnalysis);
+               InstanceKey leftKey = getInstanceKey((Local)leftop, ds);
                // Check if rightop is NullConstant or NewExpr
                if (isNewOrNull(rightop)) {
                   fieldLocalStore.addLocal(leftKey, (InstanceKey)null);
                }
                // Check if rightop is CastExpr
                else if (rightop instanceof CastExpr) {
-                  InstanceKey rightKey = new InstanceKey((Local) ((CastExpr)rightop).getOp(), ds, m,
-                        localMustAliasAnalysis, localNotMayAliasAnalysis);
-                  fieldLocalStore.addLocal(leftKey, rightKey);
+                  fieldLocalStore.addLocal(leftKey, getInstanceKey((Local)((CastExpr)rightop).getOp(), ds));
                }
                // Check if rightop is Local 
                else if (rightop instanceof Local) {
-                  InstanceKey rightKey = new InstanceKey((Local) rightop, ds, m,
-                        localMustAliasAnalysis, localNotMayAliasAnalysis);
-                  fieldLocalStore.addLocal(leftKey, rightKey);
+                  fieldLocalStore.addLocal(leftKey, getInstanceKey((Local)rightop, ds));
                }
                // Check if rightop is FieldRef 
                else if (rightop instanceof FieldRef) {
-                  InstanceKey rightopObject = 
-                     (rightop instanceof InstanceFieldRef) ?
-                     new InstanceKey((Local) ((InstanceFieldRef)rightop).getBase(), ds, m,
-                           localMustAliasAnalysis, localNotMayAliasAnalysis)
-                     : null;
-                  SootField rightopField = ((FieldRef)rightop).getField();
-                  ObjectFieldPair objectFieldPair = new ObjectFieldPair(rightopObject, rightopField);
-                  fieldLocalStore.addLocal(leftKey, objectFieldPair);
+                  fieldLocalStore.addLocal(leftKey, getObjectFieldPair((FieldRef)rightop, ds));
                }
                else if (rightop instanceof ParameterRef) {
                   analyzeExternal(leftKey, (ParameterRef)rightop);
                }
                else if (rightop instanceof InvokeExpr) {
-                  //fieldLocalStore.addExternal(leftKey);
-                  analyzeExternal(leftKey, d, listener);
+                  analyzeExternal(d, listener);
                }
                else {
                   fieldLocalStore.addUnknown(leftKey);
