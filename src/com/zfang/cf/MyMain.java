@@ -19,7 +19,7 @@
 package com.zfang.cf;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -62,6 +62,7 @@ class MySceneTransformer extends SceneTransformer {
          Chain<SootClass> classes = Scene.v().getApplicationClasses();
          ArrayList<SootMethod> methods = new ArrayList<SootMethod>();
          Set<SootMethod> sortedMethods = new LinkedHashSet<SootMethod>();
+         Set<SootMethod> visitedMethods = new HashSet<SootMethod>();
 
          for (SootClass c : classes) {
             methods.addAll(c.getMethods());
@@ -71,7 +72,7 @@ class MySceneTransformer extends SceneTransformer {
             if (method.hasActiveBody()
                   && !sortedMethods.contains(method)
                   && !(isJavaOrSunLibMethod(method))) {
-               findEdges(method, sortedMethods);
+               findEdges(method, sortedMethods, visitedMethods);
             }
          }
 
@@ -88,7 +89,9 @@ class MySceneTransformer extends SceneTransformer {
    // Method to arrange the order of methods depending on the caller & callee
    // relations
    // if a calls b, a is stored earlier than b.
-   protected void findEdges(SootMethod m, Set<SootMethod> sorted) {
+   protected void findEdges(SootMethod m, Set<SootMethod> sorted, Set<SootMethod> visited) {
+		visited.add(m);
+
       sorted.add(m);
 
       Iterator<Edge> it = graph.edgesOutOf(m);
@@ -99,13 +102,13 @@ class MySceneTransformer extends SceneTransformer {
             continue;
          }
 
-         if (m.equals(targetM)) {
+         if (m.equals(targetM) || visited.contains(targetM)) {
             continue;
          }
 
          sorted.remove(targetM);
 
-         findEdges(targetM, sorted);
+         findEdges(targetM, sorted, visited);
       }
    }
 }

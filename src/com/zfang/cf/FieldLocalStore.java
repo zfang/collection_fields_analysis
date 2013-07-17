@@ -334,7 +334,7 @@ public class FieldLocalStore implements Cloneable {
          .append("finalAliasedFieldStore: ")
          .append(finalAliasedFieldStore.toString())
          .append("\n")
-         .append("finalAliasedFieldsCount size: ")
+         .append("finalAliasedFieldStore size: ")
          .append(finalAliasedFieldsCount)
          .append("\n")
          .append("externalFields: ")

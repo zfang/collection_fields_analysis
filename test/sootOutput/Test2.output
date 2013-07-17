@@ -2,7 +2,7 @@
 [Main]: nonAliasedFields: [1(r2):<Test2: java.util.List f3>, 1(r2):<Test2: java.util.List f5>, 1(r2):<Test2: java.util.List f4>, 1(r2):<Test2: java.util.List f6>]
 [Main]: nonAliasedFields size: 4
 [Main]: finalAliasedFieldStore: [{field=[1(r2):<Test2: java.util.List f1>, 1(r2):<Test2: java.util.List f2>], local=[2($r5)]}]
-[Main]: finalAliasedFieldsCount size: 2
+[Main]: finalAliasedFieldStore size: 2
 [Main]: externalFields: []
 [Main]: externalFields size: 0
 [Main]: unknownFields: []
