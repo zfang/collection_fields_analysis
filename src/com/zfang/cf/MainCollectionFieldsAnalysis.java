@@ -232,7 +232,7 @@ SearchThroughFieldLocalStore:
             parameterStates.put(targetM, newStates);
          }
          else {
-            for (int i = 0; i < states.length; ++i) {
+            for (int i = 0; i < states.length && i < newStates.length; ++i) {
                states[i] = CollectionVaribleState.getNewValue(states[i], newStates[i]);
             }
          }
