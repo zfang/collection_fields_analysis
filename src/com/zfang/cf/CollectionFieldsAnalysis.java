@@ -43,14 +43,16 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
 
    protected final FieldLocalStore fieldLocalStore = new FieldLocalStore();
 
-   public static Map<SootMethod, CollectionVaribleState[]> parameterStates =
+   public static final Map<SootMethod, CollectionVaribleState[]> parameterStates =
       new HashMap<SootMethod, CollectionVaribleState[]>();
 
-   protected List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierarchy()
+   public static final Map<SootField, CollectionVaribleState> fieldMap = new HashMap<SootField, CollectionVaribleState>();
+
+   private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierarchy()
       .getDirectImplementersOf(
             RefType.v("java.util.Collection").getSootClass());
    // A list that contains names of all subclasses of java.util.Collection.
-   protected Set<String> ALL_COLLECTION_NAMES = new HashSet<String>();
+   public static final Set<String> ALL_COLLECTION_NAMES = new HashSet<String>();
    {
       for (SootClass cl : ALL_COLLECTIONS) {
          ALL_COLLECTION_NAMES.add(cl.toString());
@@ -65,8 +67,6 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
 
    protected CollectionFieldsAnalysis(ExceptionalUnitGraph exceptionalUnitGraph) {
       super(exceptionalUnitGraph);
-
-      this.parameterStates = parameterStates;
 
 		localMustAliasAnalysis = new LocalMustAliasAnalysis(
 				exceptionalUnitGraph, true);
@@ -96,10 +96,6 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
    public InstanceKey getInstanceKey(Local local, Stmt ds) {
       return new InstanceKey((Local) local, ds, m,
             localMustAliasAnalysis, localNotMayAliasAnalysis);
-   }
-
-   public FieldLocalStore getFieldLocalStore() {
-      return fieldLocalStore;
    }
 
    protected void print(String TAG, Object obj) {

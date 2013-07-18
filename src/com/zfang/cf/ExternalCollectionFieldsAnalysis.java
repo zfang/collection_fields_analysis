@@ -1,21 +1,14 @@
 package com.zfang.cf;
 
-import java.util.Iterator;
-
 import soot.Local;
-import soot.Scene;
-import soot.SootField;
-import soot.SootMethod;
 import soot.Value;
 import soot.jimple.CastExpr;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.FieldRef;
-import soot.jimple.InstanceFieldRef;
 import soot.jimple.InvokeExpr;
 import soot.jimple.ParameterRef;
 import soot.jimple.ReturnStmt;
 import soot.jimple.Stmt;
-import soot.jimple.toolkits.callgraph.Edge;
 import soot.jimple.toolkits.pointer.InstanceKey;
 import soot.toolkits.graph.ExceptionalUnitGraph;
 

@@ -6,28 +6,10 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import soot.jimple.toolkits.pointer.InstanceKey;
 
 public class FieldLocalStore implements Cloneable {
-   
-   class FieldLocalStoreRunnable implements Runnable {
-      public final FieldLocalStore store;
-      public final CollectionVaribleState state;
-
-      public FieldLocalStoreRunnable(FieldLocalStore store, CollectionVaribleState state) {
-         this.store = store;
-         this.state = state;
-      }
-
-      public void run (){
-      }
-   }
-
-   private static final ExecutorService executor = Executors.newFixedThreadPool(4);
 
    private final Set<ObjectFieldPair> nonAliasedFields = new LinkedHashSet<ObjectFieldPair>(), 
           externalFields = new LinkedHashSet<ObjectFieldPair>(),
@@ -259,45 +241,17 @@ public class FieldLocalStore implements Cloneable {
    }
 
    public void finalize() {
-      List<Runnable> tasks = new ArrayList<Runnable>(4);
-
       for (CollectionVaribleState state : CollectionVaribleState.allStates) {
-         tasks.add(new FieldLocalStoreRunnable(this, state) {
-            public void run() {
-               store.populateFinalAliasedFieldStore(state);
-            }
-         });
+         populateFinalAliasedFieldStore(state);
       }
-
-      for (Runnable task : tasks) {
-         executor.execute(task);
-      }
-
-      try {
-         executor.awaitTermination(1, TimeUnit.MINUTES);
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
-
-      tasks.clear();
 
       // Remove those that only have fields that class of Objects
       for (CollectionVaribleState state : CollectionVaribleState.allStates) {
-         tasks.add(new FieldLocalStoreRunnable(this, state) {
-            public void run() {
-               store.removeObjectClassFields(state);
-            }
-         });
+         removeObjectClassFields(state);
       }
 
-      for (Runnable task : tasks) {
-         executor.execute(task);
-      }
-
-      try {
-         executor.awaitTermination(1, TimeUnit.MINUTES);
-      } catch (Exception e) {
-         e.printStackTrace();
+      for (CollectionVaribleState state : CollectionVaribleState.allStates) {
+         updateFieldMap(state);
       }
    }
 
@@ -388,6 +342,36 @@ public class FieldLocalStore implements Cloneable {
          ObjectFieldPair field = iter.next();
          if ("java.lang.Object".equals(field.getField().getType().toString())) {
             iter.remove();
+         }
+      }
+   }
+
+   public void updateFieldMap(CollectionVaribleState state) {
+      List<Set<ObjectFieldPair>> fieldList = new ArrayList<Set<ObjectFieldPair>>();
+      switch(state) {
+         case ALIASED: 
+               for (FieldLocalMap fieldLocalMap : finalAliasedFieldStore) {
+                  fieldList.add(fieldLocalMap.getFieldSet());
+               }
+               break;
+         case EXTERNAL: 
+            fieldList.add(externalFields);
+            break;
+         case UNKNOWN:
+            fieldList.add(unknownFields);
+            break;
+         case NONALIASED:
+            fieldList.add(nonAliasedFields);
+            break;
+         default:
+            return;
+      }
+
+      for (Set<ObjectFieldPair> fields : fieldList) {
+         for (ObjectFieldPair field : fields) {
+            CollectionVaribleState currentState = CollectionFieldsAnalysis.fieldMap.get(field.getField());
+            CollectionFieldsAnalysis.fieldMap.put(field.getField(), 
+                  currentState == null ? state : CollectionVaribleState.getNewValue(currentState, state));
          }
       }
    }
