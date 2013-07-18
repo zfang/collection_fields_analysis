@@ -7,3 +7,11 @@
 [Main]: externalFields size: 0
 [Main]: unknownFields: []
 [Main]: unknownFields size: 0
+[Base]: ALIASED: []
+[Base]: ALIASED size: 0
+[Base]: EXTERNAL: []
+[Base]: EXTERNAL size: 0
+[Base]: UNKNOWN: []
+[Base]: UNKNOWN size: 0
+[Base]: NONALIASED: [<Test1: java.util.List f2>, <Test1: java.util.List f4>, <Test1: java.util.List f6>, <Test1: java.util.List f1>, <Test1: java.util.List f3>, <Test1: java.util.List f5>]
+[Base]: NONALIASED size: 6

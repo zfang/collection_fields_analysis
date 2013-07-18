@@ -84,6 +84,8 @@ class MySceneTransformer extends SceneTransformer {
                new MainCollectionFieldsAnalysis(new ExceptionalUnitGraph(body));
             }
          }
+         
+         CollectionFieldsAnalysis.printReverseFieldMap();
       }
 
    // Method to arrange the order of methods depending on the caller & callee

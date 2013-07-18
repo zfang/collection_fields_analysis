@@ -3,6 +3,8 @@ package com.zfang.cf;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -19,8 +21,6 @@ import soot.Unit;
 import soot.Value;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
-import soot.jimple.InstanceInvokeExpr;
-import soot.jimple.InvokeExpr;
 import soot.jimple.ParameterRef;
 import soot.jimple.Stmt;
 import soot.jimple.toolkits.callgraph.Edge;
@@ -46,7 +46,7 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
    public static final Map<SootMethod, CollectionVaribleState[]> parameterStates =
       new HashMap<SootMethod, CollectionVaribleState[]>();
 
-   public static final Map<SootField, CollectionVaribleState> fieldMap = new HashMap<SootField, CollectionVaribleState>();
+   public static final Map<SootField, CollectionVaribleState> fieldMap = new LinkedHashMap<SootField, CollectionVaribleState>();
 
    private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierarchy()
       .getDirectImplementersOf(
@@ -61,8 +61,6 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
       ALL_COLLECTION_NAMES.add("java.util.List");
       ALL_COLLECTION_NAMES.add("java.util.SortedSet");
       ALL_COLLECTION_NAMES.add("java.util.Set");
-      // Add class Object in case of casting and clone
-      ALL_COLLECTION_NAMES.add("java.lang.Object"); 
    }
 
    protected CollectionFieldsAnalysis(ExceptionalUnitGraph exceptionalUnitGraph) {
@@ -113,7 +111,38 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
    }
 
    public static void print(Object obj) {
-      print(TAG, obj);
+      print("Base" + TAG, obj);
+   }
+
+   public static Map<CollectionVaribleState, Set<SootField>> getReverseFieldMap() {
+      Map<CollectionVaribleState, Set<SootField>> reverseFieldMap = new LinkedHashMap<CollectionVaribleState, Set<SootField>>();
+      for (CollectionVaribleState state : CollectionVaribleState.allStates) {
+         reverseFieldMap.put(state, new LinkedHashSet<SootField>());
+      }
+
+      for (Map.Entry<SootField, CollectionVaribleState> entry : fieldMap.entrySet()) {
+         reverseFieldMap.get(entry.getValue()).add(entry.getKey());
+      }
+
+      return reverseFieldMap;
+   }
+
+   public static void printReverseFieldMap() {
+      Map<CollectionVaribleState, Set<SootField>> reverseFieldMap = getReverseFieldMap();
+      StringBuilder stringBuilder = new StringBuilder();
+      for (Map.Entry<CollectionVaribleState, Set<SootField>> entry : reverseFieldMap.entrySet()) {
+         stringBuilder
+            .append(entry.getKey().name())
+            .append(": ")
+            .append(entry.getValue())
+            .append("\n")
+            .append(entry.getKey().name())
+            .append(" size: ")
+            .append(entry.getValue().size())
+            .append("\n")
+            ;
+      }
+      print(stringBuilder.toString());
    }
 
    protected void analyzeExternal(Object o, ParameterRef param) {
@@ -155,18 +184,6 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
    }
 
    protected void analyzeExternal(Stmt d, FieldLocalStoreUpdateListener listener) {
-      // Take care of clone case, which returns a shallow copy
-      // and we say the shallow copies are non-aliased
-      InvokeExpr invoke = d.getInvokeExpr(); 
-      if (invoke.getMethod().getName().equals("clone")) {
-         if (invoke instanceof InstanceInvokeExpr) {
-            if (ALL_COLLECTION_NAMES.contains(
-                     ((InstanceInvokeExpr)invoke).getBase().getType().toString())) {
-               listener.finalize();
-            }
-         }
-      }
-
       Iterator<Edge> it = Scene.v().getCallGraph().edgesOutOf(d);
       while (it.hasNext()) {
          Edge e = it.next();
