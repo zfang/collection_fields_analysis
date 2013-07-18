@@ -27,7 +27,7 @@ public class ExternalCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
       doAnalysis();
    }
 
-   public void print(Object obj) {
+   public static void print(Object obj) {
       print(TAG, obj);
    }
 

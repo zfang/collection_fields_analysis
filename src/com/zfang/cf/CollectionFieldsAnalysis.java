@@ -98,7 +98,7 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
             localMustAliasAnalysis, localNotMayAliasAnalysis);
    }
 
-   protected void print(String TAG, Object obj) {
+   public static void print(String TAG, Object obj) {
       String [] tokens = obj.toString().split("\n");
       for (String token : tokens) {
          G.v().out.println(
@@ -112,7 +112,7 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
       }
    }
 
-   private void print(Object obj) {
+   public static void print(Object obj) {
       print(TAG, obj);
    }
 
