@@ -23,7 +23,7 @@ public class ExternalCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
 
    public static final String TAG = "ExternalCollectionFieldsAnalysis";
 
-   private FieldLocalStoreUpdateListener listener;
+   private final FieldLocalStoreUpdateListener listener;
 
    public ExternalCollectionFieldsAnalysis(ExceptionalUnitGraph exceptionalUnitGraph, 
          FieldLocalStoreUpdateListener listener) {

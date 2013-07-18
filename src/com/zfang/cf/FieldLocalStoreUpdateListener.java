@@ -9,12 +9,12 @@ import soot.jimple.toolkits.pointer.InstanceKey;
 import soot.toolkits.graph.ExceptionalUnitGraph;
 
 public class FieldLocalStoreUpdateListener {
-   private Object obj;
-   private FieldLocalStore store;
+   private final Object obj;
+   private final FieldLocalStore store;
 
    private CollectionVaribleState state;
 
-   private Set<SootMethod> methods = new HashSet<SootMethod>();
+   private final Set<SootMethod> methods = new HashSet<SootMethod>();
 
    public FieldLocalStoreUpdateListener(Object o, FieldLocalStore s) {
       obj = o;

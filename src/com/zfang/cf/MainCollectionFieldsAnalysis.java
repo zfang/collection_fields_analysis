@@ -1,6 +1,5 @@
 package com.zfang.cf;
 
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -146,7 +145,7 @@ public class MainCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
             }
 
 SearchThroughFieldLocalStore:
-            for (CollectionVaribleState state : EnumSet.allOf(CollectionVaribleState.class)) {
+            for (CollectionVaribleState state : CollectionVaribleState.allStates) {
                for (FieldLocalMap fieldLocalMap : fieldLocalStore.getFieldStore(state)) {
                   if (fieldLocalMap.containsField(field)) {
                      for (ObjectFieldPair visitedField : visitedFields) {
@@ -189,7 +188,7 @@ SearchThroughFieldLocalStore:
             }
 
 SearchThroughFieldLocalStore:
-            for (CollectionVaribleState state : EnumSet.allOf(CollectionVaribleState.class)) {
+            for (CollectionVaribleState state : CollectionVaribleState.allStates) {
                for (FieldLocalMap fieldLocalMap : fieldLocalStore.getFieldStore(state)) {
                   if (fieldLocalMap.containsLocal(local)) {
                      for (ObjectFieldPair visitedField : visitedFields) {

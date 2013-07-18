@@ -35,13 +35,13 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
 
    public static final String TAG = "CollectionFieldsAnalysis";
 
-	protected LocalMustAliasAnalysis localMustAliasAnalysis;
-	protected LocalMustNotAliasAnalysis localNotMayAliasAnalysis;
-   protected SootMethod m;
-   protected Body body;
-   protected ExceptionalUnitGraph g;
+	protected final LocalMustAliasAnalysis localMustAliasAnalysis;
+	protected final LocalMustNotAliasAnalysis localNotMayAliasAnalysis;
+   protected final SootMethod m;
+   protected final Body body;
+   protected final ExceptionalUnitGraph g;
 
-   protected FieldLocalStore fieldLocalStore = new FieldLocalStore();
+   protected final FieldLocalStore fieldLocalStore = new FieldLocalStore();
 
    public static Map<SootMethod, CollectionVaribleState[]> parameterStates =
       new HashMap<SootMethod, CollectionVaribleState[]>();
@@ -96,6 +96,10 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
    public InstanceKey getInstanceKey(Local local, Stmt ds) {
       return new InstanceKey((Local) local, ds, m,
             localMustAliasAnalysis, localNotMayAliasAnalysis);
+   }
+
+   public FieldLocalStore getFieldLocalStore() {
+      return fieldLocalStore;
    }
 
    protected void print(String TAG, Object obj) {

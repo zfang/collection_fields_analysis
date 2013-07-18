@@ -1,4 +1,4 @@
-#!/usr/bin/bash
+#!/bin/bash
 
 jre_path=/usr/lib/jvm/java/jre/lib
 
