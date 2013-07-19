@@ -168,10 +168,7 @@ SearchThroughFieldLocalStore:
                }
             }
 
-            if (fieldLocalStore.isExternal(field))
-               newStates[i] = CollectionVaribleState.getNewValue(newStates[i],
-                     CollectionVaribleState.EXTERNAL);
-            else if (fieldLocalStore.isUnknown(field))
+            if (fieldLocalStore.isUnknown(field))
                newStates[i] = CollectionVaribleState.getNewValue(newStates[i],
                      CollectionVaribleState.UNKNOWN);
 
@@ -209,11 +206,7 @@ SearchThroughFieldLocalStore:
                }
             }
 
-            if (fieldLocalStore.isExternal(local))
-               newStates[i] = CollectionVaribleState.getNewValue(newStates[i],
-                     CollectionVaribleState.EXTERNAL);
-
-            else if (fieldLocalStore.isUnknown(local))
+            if (fieldLocalStore.isUnknown(local))
                newStates[i] = CollectionVaribleState.getNewValue(newStates[i],
                      CollectionVaribleState.UNKNOWN);
 

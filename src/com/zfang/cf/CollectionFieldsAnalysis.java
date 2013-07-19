@@ -48,7 +48,8 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
 
    public static final Map<SootField, CollectionVaribleState> fieldMap = new LinkedHashMap<SootField, CollectionVaribleState>();
 
-   private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierarchy()
+   @SuppressWarnings("unchecked")
+private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierarchy()
       .getDirectImplementersOf(
             RefType.v("java.util.Collection").getSootClass());
    // A list that contains names of all subclasses of java.util.Collection.
@@ -159,10 +160,8 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
 
       CollectionVaribleState [] states = parameterStates.get(m);
 
-      // If we don't know about the method
-      // We assume it's external
       if (null == states) {
-         fieldLocalStore.addToStore(field, local, CollectionVaribleState.EXTERNAL);
+         fieldLocalStore.addToStore(field, local, CollectionVaribleState.UNKNOWN);
          return;
       }
 
@@ -173,7 +172,6 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
 
       switch(state) {
          case ALIASED: 
-         case EXTERNAL: 
          case UNKNOWN:
          case NONALIASED:
             fieldLocalStore.addToStore(field, local, state);

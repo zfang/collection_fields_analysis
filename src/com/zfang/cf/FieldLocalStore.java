@@ -2,7 +2,6 @@ package com.zfang.cf;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,17 +11,15 @@ import soot.jimple.toolkits.pointer.InstanceKey;
 public class FieldLocalStore implements Cloneable {
 
    private final Set<ObjectFieldPair> nonAliasedFields = new LinkedHashSet<ObjectFieldPair>(), 
-          externalFields = new LinkedHashSet<ObjectFieldPair>(),
           unknownFields = new LinkedHashSet<ObjectFieldPair>();
 
-   /* 0: fields from externalFields
-    * 1: fields from unknownFields
-    * 2: fields from nonAliasedFields
+   /* 0: fields from unknownFields
+    * 1: fields from nonAliasedFields
     */
-   private final List<FieldLocalMap> [] mayAliasedFieldStore = (List<FieldLocalMap>[]) new List[3];
+   @SuppressWarnings("unchecked")
+private final List<FieldLocalMap> [] mayAliasedFieldStore = (List<FieldLocalMap>[]) new List[2];
 
-   private final Set<InstanceKey> externalLocals = new LinkedHashSet<InstanceKey>(),
-          unknownLocals = new LinkedHashSet<InstanceKey>();
+   private final Set<InstanceKey> unknownLocals = new LinkedHashSet<InstanceKey>();
 
    private final List<FieldLocalMap> aliasedFieldStore = new ArrayList<FieldLocalMap>();
 
@@ -39,7 +36,6 @@ public class FieldLocalStore implements Cloneable {
       switch (type) {
          case ALIASED: 
             return aliasedFieldStore;
-         case EXTERNAL: 
          case UNKNOWN:
          case NONALIASED:
             return mayAliasedFieldStore[type.ordinal()-1];
@@ -50,7 +46,6 @@ public class FieldLocalStore implements Cloneable {
 
    public void removeField(ObjectFieldPair objectFieldPair) {
       if (!nonAliasedFields.remove(objectFieldPair) 
-            && !externalFields.remove(objectFieldPair) 
             && !unknownFields.remove(objectFieldPair)) {
          for (CollectionVaribleState state : CollectionVaribleState.allStates) {
             for (FieldLocalMap fieldLocalMap : getFieldStore(state)) {
@@ -89,11 +84,6 @@ public class FieldLocalStore implements Cloneable {
 
    public void addField(ObjectFieldPair objectFieldPair, InstanceKey rightKey) {
       removeField(objectFieldPair);
-
-      if (externalLocals.remove(rightKey)) {
-         addToStore(objectFieldPair, rightKey, CollectionVaribleState.EXTERNAL);
-         return;
-      }
 
       if (unknownLocals.remove(rightKey)) {
          addToStore(objectFieldPair, rightKey, CollectionVaribleState.UNKNOWN);
@@ -136,11 +126,6 @@ public class FieldLocalStore implements Cloneable {
          }
       }
 
-      if (externalLocals.remove(rightKey)) {
-         addToStore(leftKey, rightKey, CollectionVaribleState.EXTERNAL);
-         return;
-      }
-
       if (unknownLocals.remove(rightKey)) {
          addToStore(leftKey, rightKey, CollectionVaribleState.UNKNOWN);
          return;
@@ -166,32 +151,40 @@ public class FieldLocalStore implements Cloneable {
          return;
       }
 
-      if (externalFields.remove(objectFieldPair)) {
-         addToStore(objectFieldPair, leftKey, CollectionVaribleState.EXTERNAL);
-         return;
-      }
-
       if (unknownFields.remove(objectFieldPair)) {
          addToStore(objectFieldPair, leftKey, CollectionVaribleState.UNKNOWN);
          return;
       }
       
-      // If we cannot find the field, we say it's external
-      addExternal(leftKey);
    }
 
    public void addNonAliased(ObjectFieldPair field) {
       nonAliasedFields.add(field);
    }
       
-   public void addExternal(ObjectFieldPair field) {
-      externalFields.add(field);
+   public void addAliased(ObjectFieldPair field, InstanceKey local) {
+      if (null == field && null == local) {
+         return;
+      }
+
+      CollectionVaribleState state = CollectionVaribleState.ALIASED;
+
+      for (FieldLocalMap fieldLocalMap : getFieldStore(state)) {
+         Set<ObjectFieldPair> fieldSet = fieldLocalMap.getFieldSet();
+         Set<InstanceKey> localSet = fieldLocalMap.getLocalSet();
+         if (null != local && localSet.contains(local)) {
+            fieldLocalMap.addToFieldSet(field);
+            return;
+         }
+         if (null != field && fieldSet.contains(field)) {
+            fieldLocalMap.addToLocalSet(local);
+            return;
+         }
+      }
+
+      addToStore(field, local, state);
    }
-      
-   public void addExternal(InstanceKey local) {
-      externalLocals.add(local);
-   }
-      
+
    public void addUnknown(ObjectFieldPair field) {
       unknownFields.add(field);
    }
@@ -222,14 +215,6 @@ public class FieldLocalStore implements Cloneable {
       return false;
    }
       
-   public boolean isExternal(ObjectFieldPair field) {
-      return externalFields.contains(field);
-   }
-      
-   public boolean isExternal(InstanceKey local) {
-      return externalLocals.contains(local);
-   }
-      
    public boolean isUnknown(ObjectFieldPair field) {
       return unknownFields.contains(field);
    }
@@ -256,8 +241,6 @@ public class FieldLocalStore implements Cloneable {
       Set<ObjectFieldPair> fields = null;
       Set<InstanceKey> locals = null;
 
-      List<FieldLocalMap> store = null;
-
       switch(state) {
          case ALIASED: 
             {
@@ -268,18 +251,11 @@ public class FieldLocalStore implements Cloneable {
                }
                return;
             }
-         case EXTERNAL: 
-            store = getFieldStore(state);
-            fields = externalFields;
-            locals = externalLocals;
-            break;
          case UNKNOWN:
-            store = getFieldStore(state);
             fields = unknownFields;
             locals = unknownLocals;
             break;
          case NONALIASED:
-            store = getFieldStore(state);
             fields = nonAliasedFields;
             break;
          default:
@@ -308,9 +284,6 @@ public class FieldLocalStore implements Cloneable {
                   fieldList.add(fieldLocalMap.getFieldSet());
                }
                break;
-         case EXTERNAL: 
-            fieldList.add(externalFields);
-            break;
          case UNKNOWN:
             fieldList.add(unknownFields);
             break;
@@ -347,14 +320,8 @@ public class FieldLocalStore implements Cloneable {
          .append("mayAliasedFieldStore[2]: ")
          .append(mayAliasedFieldStore[2].toString())
          .append("\n")
-         .append("externalFields: ")
-         .append(externalFields.toString())
-         .append("\n")
          .append("unknownFields: ")
          .append(unknownFields.toString())
-         .append("\n")
-         .append("externalLocals: ")
-         .append(externalLocals.toString())
          .append("\n")
          .append("unknownLocals: ")
          .append(unknownLocals.toString())
@@ -365,7 +332,6 @@ public class FieldLocalStore implements Cloneable {
    public String toString() {
       if (nonAliasedFields.isEmpty() 
             && finalAliasedFieldStore.isEmpty() 
-            && externalFields.isEmpty()
             && unknownFields.isEmpty()) {
          return "";
       }
@@ -387,12 +353,6 @@ public class FieldLocalStore implements Cloneable {
          .append("\n")
          .append("finalAliasedFieldStore size: ")
          .append(finalAliasedFieldsCount)
-         .append("\n")
-         .append("externalFields: ")
-         .append(externalFields.toString())
-         .append("\n")
-         .append("externalFields size: ")
-         .append(externalFields.size())
          .append("\n")
          .append("unknownFields: ")
          .append(unknownFields.toString())
@@ -417,16 +377,8 @@ public class FieldLocalStore implements Cloneable {
          storeClone.addNonAliased(field);
       }
 
-      for (ObjectFieldPair field : externalFields) {
-         storeClone.addExternal(field);
-      }
-
       for (ObjectFieldPair field : unknownFields) {
          storeClone.addUnknown(field);
-      }
-
-      for (InstanceKey local : externalLocals) {
-         storeClone.addExternal(local);
       }
 
       for (InstanceKey local : unknownLocals) {

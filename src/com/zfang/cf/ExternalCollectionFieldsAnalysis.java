@@ -59,7 +59,7 @@ public class ExternalCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
                }
                // Check if rightop is FieldRef 
                else if (rightop instanceof FieldRef) {
-                  fieldLocalStore.addLocal(leftKey, getObjectFieldPair((FieldRef)rightop, ds));
+                  fieldLocalStore.addAliased(getObjectFieldPair((FieldRef)rightop, ds), leftKey);
                }
                else if (rightop instanceof ParameterRef) {
                   analyzeExternal(leftKey, (ParameterRef)rightop);
@@ -88,8 +88,8 @@ public class ExternalCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
          InstanceKey opKey = new InstanceKey((Local)op, d, m,
                localMustAliasAnalysis, localNotMayAliasAnalysis);
 
-         if (fieldLocalStore.isAliased(opKey) || fieldLocalStore.isExternal(opKey))
-            listener.onExternal();
+         if (fieldLocalStore.isAliased(opKey))
+            listener.onAliased();
          else if (fieldLocalStore.isUnknown(opKey))
             listener.onUnknown();
       }
