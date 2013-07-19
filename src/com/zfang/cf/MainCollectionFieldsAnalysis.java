@@ -41,6 +41,10 @@ public class MainCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
             Value leftop = ((DefinitionStmt) d).getLeftOp(),
                   rightop = ((DefinitionStmt) d).getRightOp();
 
+            if (isAssignedToCloneMethod(leftop, rightop, ds)) {
+               return;
+            }
+
             if (!ALL_COLLECTION_NAMES.contains(leftop.getType().toString())) {
                return;
             }
@@ -105,6 +109,8 @@ public class MainCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
          if (d.containsInvokeExpr()) {
             updateParameterTypes(d, ds);
          }
+
+         // print(fieldLocalStore.toStringDebug());
       }
 
    private void updateParameterTypes(Stmt d, Stmt ds) {
@@ -168,7 +174,11 @@ SearchThroughFieldLocalStore:
                }
             }
 
-            if (fieldLocalStore.isUnknown(field))
+            if (fieldLocalStore.isExternal(field))
+               newStates[i] = CollectionVaribleState.getNewValue(newStates[i],
+                     CollectionVaribleState.EXTERNAL);
+
+            else if (fieldLocalStore.isUnknown(field))
                newStates[i] = CollectionVaribleState.getNewValue(newStates[i],
                      CollectionVaribleState.UNKNOWN);
 
@@ -205,6 +215,10 @@ SearchThroughFieldLocalStore:
                   }
                }
             }
+
+            if (fieldLocalStore.isExternal(local))
+               newStates[i] = CollectionVaribleState.getNewValue(newStates[i],
+                     CollectionVaribleState.EXTERNAL);
 
             if (fieldLocalStore.isUnknown(local))
                newStates[i] = CollectionVaribleState.getNewValue(newStates[i],

@@ -1,5 +1,5 @@
 #!/bin/bash
-for i in {1..4}
+for i in {1..5}
 do
    set -x
    PROJECT=../test/ ./run.sh --main-class Test${i} > ../test/sootOutput/Test${i}.output

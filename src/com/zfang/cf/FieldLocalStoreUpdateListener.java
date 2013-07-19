@@ -26,6 +26,10 @@ public class FieldLocalStoreUpdateListener {
       state = CollectionVaribleState.getNewValue(state, CollectionVaribleState.ALIASED);
    }
 
+   public void onExternal() {
+      state = CollectionVaribleState.getNewValue(state, CollectionVaribleState.EXTERNAL);
+   }
+
    public void onUnknown() {
       state = CollectionVaribleState.getNewValue(state, CollectionVaribleState.UNKNOWN);
    }
@@ -52,6 +56,9 @@ public class FieldLocalStoreUpdateListener {
             case ALIASED:
                store.addAliased(field, null);
                break;
+            case EXTERNAL:
+               store.addExternal(field);
+               break;
             case UNKNOWN:
                store.addUnknown(field);
                break;
@@ -68,6 +75,9 @@ public class FieldLocalStoreUpdateListener {
          switch (state) {
             case ALIASED:
                store.addAliased(null, local);
+               break;
+            case EXTERNAL:
+               store.addExternal(local);
                break;
             case UNKNOWN:
                store.addUnknown(local);

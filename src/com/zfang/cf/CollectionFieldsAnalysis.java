@@ -21,6 +21,7 @@ import soot.Unit;
 import soot.Value;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
+import soot.jimple.InvokeExpr;
 import soot.jimple.ParameterRef;
 import soot.jimple.Stmt;
 import soot.jimple.toolkits.callgraph.Edge;
@@ -53,16 +54,23 @@ private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierar
       .getDirectImplementersOf(
             RefType.v("java.util.Collection").getSootClass());
    // A list that contains names of all subclasses of java.util.Collection.
-   public static final Set<String> ALL_COLLECTION_NAMES = new HashSet<String>();
-   {
+   public static final Set<String> ALL_COLLECTION_NAMES = new HashSet<String>()
+   {{
       for (SootClass cl : ALL_COLLECTIONS) {
-         ALL_COLLECTION_NAMES.add(cl.toString());
+         add(cl.toString());
       }
-      ALL_COLLECTION_NAMES.add("java.util.Collection");
-      ALL_COLLECTION_NAMES.add("java.util.List");
-      ALL_COLLECTION_NAMES.add("java.util.SortedSet");
-      ALL_COLLECTION_NAMES.add("java.util.Set");
-   }
+      add("java.util.Collection");
+      add("java.util.List");
+      add("java.util.SortedSet");
+      add("java.util.Set");
+   }};
+
+   public static final Set<String> ALL_COLLECTION_DIRECT_IMPLEMENTER_NAMES = new HashSet<String>()
+   {{
+      for (SootClass cl : ALL_COLLECTIONS) {
+         add(cl.toString());
+      }
+   }};
 
    protected CollectionFieldsAnalysis(ExceptionalUnitGraph exceptionalUnitGraph) {
       super(exceptionalUnitGraph);
@@ -75,6 +83,20 @@ private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierar
       m = exceptionalUnitGraph.getBody().getMethod();
       body = exceptionalUnitGraph.getBody();
       g = exceptionalUnitGraph;
+   }
+
+   static boolean isFromJavaOrSunPackage(SootMethod method) {
+      return isFromJavaOrSunPackage(method.getDeclaringClass().toString());
+   }
+
+   static boolean isFromJavaOrSunPackage(SootField field) {
+      return isFromJavaOrSunPackage(field.getDeclaringClass().toString());
+   }
+   
+   static boolean isFromJavaOrSunPackage(String declaringClassName) {
+      return declaringClassName.startsWith("java.") 
+         || declaringClassName.startsWith("javax.")
+         || declaringClassName.startsWith("sun.");
    }
 
    public static boolean isNewOrNull(Value op) {
@@ -161,7 +183,7 @@ private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierar
       CollectionVaribleState [] states = parameterStates.get(m);
 
       if (null == states) {
-         fieldLocalStore.addToStore(field, local, CollectionVaribleState.UNKNOWN);
+         fieldLocalStore.addToStore(field, local, CollectionVaribleState.EXTERNAL);
          return;
       }
 
@@ -170,18 +192,28 @@ private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierar
 
       CollectionVaribleState state = states[param.getIndex()];
 
-      switch(state) {
-         case ALIASED: 
-         case UNKNOWN:
-         case NONALIASED:
-            fieldLocalStore.addToStore(field, local, state);
-            return;
-         default:
-            return;
-      }
+      fieldLocalStore.addToStore(field, local, state);
    }
 
    protected void analyzeExternal(Stmt d, FieldLocalStoreUpdateListener listener) {
+      SootMethod method = d.getInvokeExpr().getMethod();
+      if (method.isStatic() && method.getDeclaringClass().getName().equals("java.util.Collections")) {
+         listener.finalize();
+         return;
+      }
+
+      if (isFromJavaOrSunPackage(method)) {
+         listener.onExternal();
+         listener.finalize();
+         return;
+      }
+
+      if (ALL_COLLECTION_DIRECT_IMPLEMENTER_NAMES.contains(method.getDeclaringClass().getName())
+            && method.getName().equals("clone")) {
+         listener.finalize();
+         return;
+      }
+
       Iterator<Edge> it = Scene.v().getCallGraph().edgesOutOf(d);
       while (it.hasNext()) {
          Edge e = it.next();
@@ -189,6 +221,25 @@ private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierar
          listener.onAnalyzeExternal(targetM);
       }
       listener.finalize();
+   }
+
+   protected boolean isAssignedToCloneMethod(Value leftop, Value rightop, Stmt ds) {
+      if (rightop instanceof InvokeExpr) {
+         SootMethod method = ((InvokeExpr)rightop).getMethod();
+         if (ALL_COLLECTION_DIRECT_IMPLEMENTER_NAMES.contains(method.getDeclaringClass().getName())
+               && method.getName().equals("clone")) {
+            if (leftop instanceof FieldRef) {
+               fieldLocalStore.addField(getObjectFieldPair((FieldRef)leftop, ds), null);
+               return true;
+            }
+            else if (leftop instanceof Local) {
+               fieldLocalStore.addLocal(getInstanceKey((Local)leftop, ds), (InstanceKey)null);
+               return true;
+            }
+         }
+      }
+
+      return false;
    }
 
 

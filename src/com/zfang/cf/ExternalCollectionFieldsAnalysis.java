@@ -1,6 +1,7 @@
 package com.zfang.cf;
 
 import soot.Local;
+import soot.SootMethod;
 import soot.Value;
 import soot.jimple.CastExpr;
 import soot.jimple.DefinitionStmt;
@@ -36,6 +37,10 @@ public class ExternalCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
          if (d instanceof DefinitionStmt) {
             Value leftop = ((DefinitionStmt) d).getLeftOp(),
                   rightop = ((DefinitionStmt) d).getRightOp();
+
+            if (isAssignedToCloneMethod(leftop, rightop, ds)) {
+               return;
+            }
 
             if (!ALL_COLLECTION_NAMES.contains(leftop.getType().toString())) {
                return;
@@ -90,6 +95,8 @@ public class ExternalCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
 
          if (fieldLocalStore.isAliased(opKey))
             listener.onAliased();
+         else if (fieldLocalStore.isExternal(opKey))
+            listener.onExternal();
          else if (fieldLocalStore.isUnknown(opKey))
             listener.onUnknown();
       }

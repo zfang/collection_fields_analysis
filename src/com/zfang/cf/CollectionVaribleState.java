@@ -5,7 +5,7 @@ import java.util.EnumSet;
 import java.util.List;
 
 public enum CollectionVaribleState {
-   ALIASED, UNKNOWN, NONALIASED;
+   ALIASED, EXTERNAL, UNKNOWN, NONALIASED;
 
    public static final List<CollectionVaribleState> allStates = new ArrayList<CollectionVaribleState>(EnumSet.allOf(CollectionVaribleState.class));
 

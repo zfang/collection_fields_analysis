@@ -1,0 +1,35 @@
+[Main]: At Method <Test5: void setEntrySet()>
+[Main]: nonAliasedFields: []
+[Main]: nonAliasedFields size: 0
+[Main]: finalAliasedFieldStore: []
+[Main]: finalAliasedFieldStore size: 0
+[Main]: externalFields: [0(r0):<Test5: java.util.Set _entrySet>]
+[Main]: externalFields size: 1
+[Main]: unknownFields: []
+[Main]: unknownFields size: 0
+[Main]: At Method <Test5: void main(java.lang.String[])>
+[Main]: nonAliasedFields: [1(r2):<Test5: java.util.List f2>]
+[Main]: nonAliasedFields size: 1
+[Main]: finalAliasedFieldStore: [{field=[1(r2):<Test5: java.util.List f3>], local=[4($r5)]}, {field=[null:<java.util.Collections: java.util.List EMPTY_LIST>, 1(r2):<Test5: java.util.List f1>, 1(r2):<Test5: java.util.List f4>], local=[2($r3), 5($r6)]}]
+[Main]: finalAliasedFieldStore size: 4
+[Main]: externalFields: []
+[Main]: externalFields size: 0
+[Main]: unknownFields: []
+[Main]: unknownFields size: 0
+[Main]: At Method <Test5: java.util.List getList1()>
+[Main]: nonAliasedFields: []
+[Main]: nonAliasedFields size: 0
+[Main]: finalAliasedFieldStore: []
+[Main]: finalAliasedFieldStore size: 0
+[Main]: externalFields: []
+[Main]: externalFields size: 0
+[Main]: unknownFields: [null:<java.util.Collections: java.util.List EMPTY_LIST>]
+[Main]: unknownFields size: 1
+[Base]: ALIASED: [<java.util.Collections: java.util.List EMPTY_LIST>, <Test5: java.util.List f3>, <Test5: java.util.List f1>, <Test5: java.util.List f4>]
+[Base]: ALIASED size: 4
+[Base]: EXTERNAL: [<Test5: java.util.Set _entrySet>]
+[Base]: EXTERNAL size: 1
+[Base]: UNKNOWN: []
+[Base]: UNKNOWN size: 0
+[Base]: NONALIASED: [<Test5: java.util.List f2>]
+[Base]: NONALIASED size: 1

@@ -38,6 +38,8 @@ import soot.jimple.toolkits.callgraph.Edge;
 import soot.toolkits.graph.ExceptionalUnitGraph;
 import soot.util.Chain;
 
+import static com.zfang.cf.CollectionFieldsAnalysis.isFromJavaOrSunPackage;
+
 public class MyMain {
 
 	public static void main(String[] args) {
@@ -50,11 +52,6 @@ public class MyMain {
 
 class MySceneTransformer extends SceneTransformer {
 	protected CallGraph graph;
-
-   static boolean isJavaOrSunLibMethod(SootMethod method) {
-      return method.getDeclaringClass().toString().contains("java.") 
-         || method.getDeclaringClass().toString().contains("sun.");
-   }
 
    @Override
       protected void internalTransform(String phaseName, Map options) {
@@ -71,7 +68,7 @@ class MySceneTransformer extends SceneTransformer {
          for (SootMethod method : methods) {
             if (method.hasActiveBody()
                   && !sortedMethods.contains(method)
-                  && !(isJavaOrSunLibMethod(method))) {
+                  && !(isFromJavaOrSunPackage(method))) {
                findEdges(method, sortedMethods, visitedMethods);
             }
          }
@@ -100,7 +97,7 @@ class MySceneTransformer extends SceneTransformer {
       while (it.hasNext()) {
          Edge e = it.next();
          SootMethod targetM = (SootMethod) e.getTgt();
-         if (isJavaOrSunLibMethod(targetM)) {
+         if (isFromJavaOrSunPackage(targetM)) {
             continue;
          }
 
