@@ -9,11 +9,8 @@ import soot.Local;
 import soot.Scene;
 import soot.SootMethod;
 import soot.Value;
-import soot.jimple.CastExpr;
-import soot.jimple.DefinitionStmt;
 import soot.jimple.FieldRef;
 import soot.jimple.InvokeExpr;
-import soot.jimple.ParameterRef;
 import soot.jimple.Stmt;
 import soot.jimple.toolkits.callgraph.Edge;
 import soot.jimple.toolkits.pointer.InstanceKey;
@@ -37,80 +34,11 @@ public class MainCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
 
    @Override
       protected void collectData(Stmt d, Stmt ds) {
-         if (d instanceof DefinitionStmt) {
-            Value leftop = ((DefinitionStmt) d).getLeftOp(),
-                  rightop = ((DefinitionStmt) d).getRightOp();
-
-            if (isAssignedToCloneMethod(leftop, rightop, ds)) {
-               return;
-            }
-
-            if (!ALL_COLLECTION_NAMES.contains(leftop.getType().toString())) {
-               return;
-            }
-            // print(String.format("%s = %s; rightop class: %s",
-            //          leftop.toString(), rightop.toString(), rightop.getClass().getName()));
-            // Field references
-            if (leftop instanceof FieldRef) {
-               ObjectFieldPair objectFieldPair = getObjectFieldPair((FieldRef)leftop, ds);
-               // Check if rightop is NullConstant or NewExpr
-               if (isNewOrNull(rightop)) {
-                  fieldLocalStore.addField(objectFieldPair, null);
-               }
-               // Check if rightop is CastExpr
-               else if (rightop instanceof CastExpr) {
-                  fieldLocalStore.addField(objectFieldPair, getInstanceKey((Local)rightop, ds));
-               }
-               // Check if rightop is Local
-               else if (rightop instanceof Local) {
-                  fieldLocalStore.addField(objectFieldPair, getInstanceKey((Local)rightop, ds));
-               }
-               else if (rightop instanceof ParameterRef) {
-                  analyzeExternal(objectFieldPair, (ParameterRef)rightop);
-               }
-               else if (rightop instanceof InvokeExpr) {
-                  analyzeExternal(d, new FieldLocalStoreUpdateListener(objectFieldPair, fieldLocalStore));
-               }
-               else {
-                  fieldLocalStore.addUnknown(objectFieldPair);
-               }
-            }
-            // Local variables
-            else if (leftop instanceof Local) {
-               InstanceKey leftKey = getInstanceKey((Local)leftop, ds);
-               // Check if rightop is NullConstant or NewExpr
-               if (isNewOrNull(rightop)) {
-                  fieldLocalStore.addLocal(leftKey, (InstanceKey)null);
-               }
-               // Check if rightop is CastExpr
-               else if (rightop instanceof CastExpr) {
-                  fieldLocalStore.addLocal(leftKey, getInstanceKey((Local)((CastExpr)rightop).getOp(), ds));
-               }
-               // Check if rightop is Local 
-               else if (rightop instanceof Local) {
-                  fieldLocalStore.addLocal(leftKey, getInstanceKey((Local)rightop, ds));
-               }
-               // Check if rightop is FieldRef 
-               else if (rightop instanceof FieldRef) {
-                  fieldLocalStore.addLocal(leftKey, getObjectFieldPair((FieldRef)rightop, ds));
-               }
-               else if (rightop instanceof ParameterRef) {
-                  analyzeExternal(leftKey, (ParameterRef)rightop);
-               }
-               else if (rightop instanceof InvokeExpr) {
-                  analyzeExternal(d, new FieldLocalStoreUpdateListener(leftKey, fieldLocalStore));
-               }
-               else {
-                  fieldLocalStore.addUnknown(leftKey);
-               }
-            }
-         }
+         super.collectData(d, ds);
 
          if (d.containsInvokeExpr()) {
             updateParameterTypes(d, ds);
          }
-
-         // print(fieldLocalStore.toStringDebug());
       }
 
    private void updateParameterTypes(Stmt d, Stmt ds) {
@@ -130,13 +58,13 @@ public class MainCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
       if (!hasCollectionParameter)
          return;
 
-      CollectionVaribleState [] newStates = new CollectionVaribleState[args.size()];
+      CollectionVariableState [] newStates = new CollectionVariableState[args.size()];
 
       Set<ObjectFieldPair> visitedFields = new HashSet<ObjectFieldPair>();
       Set<InstanceKey> visitedLocals = new HashSet<InstanceKey>();
 
       for (int i = 0; i < invoke.getArgCount(); ++i) {
-         newStates[i] = CollectionVaribleState.NONALIASED;
+         newStates[i] = CollectionVariableState.lastValue();
 
          Value arg = invoke.getArg(i);
          if (!ALL_COLLECTION_NAMES.contains(arg.getType().toString()))
@@ -146,23 +74,23 @@ public class MainCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
             ObjectFieldPair field = getObjectFieldPair((FieldRef)arg, ds);
 
             if (visitedFields.contains(field)) {
-               newStates[i] = CollectionVaribleState.ALIASED;
+               newStates[i] = CollectionVariableState.ALIASED;
                continue;
             }
 
 SearchThroughFieldLocalStore:
-            for (CollectionVaribleState state : CollectionVaribleState.allStates) {
+            for (CollectionVariableState state : CollectionVariableState.allStates) {
                for (FieldLocalMap fieldLocalMap : fieldLocalStore.getFieldStore(state)) {
                   if (fieldLocalMap.containsField(field)) {
                      for (ObjectFieldPair visitedField : visitedFields) {
                         if (fieldLocalMap.containsField(visitedField)) {
-                           newStates[i] = CollectionVaribleState.ALIASED;
+                           newStates[i] = CollectionVariableState.ALIASED;
                            break SearchThroughFieldLocalStore;
                         }
                      }
                      for (InstanceKey visitedLocal : visitedLocals) {
                         if (fieldLocalMap.containsLocal(visitedLocal)) {
-                           newStates[i] = CollectionVaribleState.ALIASED;
+                           newStates[i] = CollectionVariableState.ALIASED;
                            break SearchThroughFieldLocalStore;
                         }
                      }
@@ -174,13 +102,8 @@ SearchThroughFieldLocalStore:
                }
             }
 
-            if (fieldLocalStore.isExternal(field))
-               newStates[i] = CollectionVaribleState.getNewValue(newStates[i],
-                     CollectionVaribleState.EXTERNAL);
-
-            else if (fieldLocalStore.isUnknown(field))
-               newStates[i] = CollectionVaribleState.getNewValue(newStates[i],
-                     CollectionVaribleState.UNKNOWN);
+            newStates[i] = CollectionVariableState.getNewValue(newStates[i],
+                  fieldLocalStore.getState(field));
 
             visitedFields.add(field);
             continue;
@@ -190,23 +113,23 @@ SearchThroughFieldLocalStore:
             InstanceKey local = getInstanceKey((Local)arg, ds);
 
             if (visitedLocals.contains(local)) {
-               newStates[i] = CollectionVaribleState.ALIASED;
+               newStates[i] = CollectionVariableState.ALIASED;
                continue;
             }
 
 SearchThroughFieldLocalStore:
-            for (CollectionVaribleState state : CollectionVaribleState.allStates) {
+            for (CollectionVariableState state : CollectionVariableState.allStates) {
                for (FieldLocalMap fieldLocalMap : fieldLocalStore.getFieldStore(state)) {
                   if (fieldLocalMap.containsLocal(local)) {
                      for (ObjectFieldPair visitedField : visitedFields) {
                         if (fieldLocalMap.containsField(visitedField)) {
-                           newStates[i] = CollectionVaribleState.ALIASED;
+                           newStates[i] = CollectionVariableState.ALIASED;
                            break SearchThroughFieldLocalStore;
                         }
                      }
                      for (InstanceKey visitedLocal : visitedLocals) {
                         if (fieldLocalMap.containsLocal(visitedLocal)) {
-                           newStates[i] = CollectionVaribleState.ALIASED;
+                           newStates[i] = CollectionVariableState.ALIASED;
                            break SearchThroughFieldLocalStore;
                         }
                      }
@@ -216,13 +139,8 @@ SearchThroughFieldLocalStore:
                }
             }
 
-            if (fieldLocalStore.isExternal(local))
-               newStates[i] = CollectionVaribleState.getNewValue(newStates[i],
-                     CollectionVaribleState.EXTERNAL);
-
-            if (fieldLocalStore.isUnknown(local))
-               newStates[i] = CollectionVaribleState.getNewValue(newStates[i],
-                     CollectionVaribleState.UNKNOWN);
+            newStates[i] = CollectionVariableState.getNewValue(newStates[i],
+                  fieldLocalStore.getState(local));
 
             visitedLocals.add(local);
             continue;
@@ -233,13 +151,13 @@ SearchThroughFieldLocalStore:
       while (it.hasNext()) {
          Edge e = it.next();
          SootMethod targetM = (SootMethod) e.getTgt();
-         CollectionVaribleState [] states = parameterStates.get(targetM);
+         CollectionVariableState [] states = parameterStates.get(targetM);
          if (null == states) {
             parameterStates.put(targetM, newStates);
          }
          else {
             for (int i = 0; i < states.length && i < newStates.length; ++i) {
-               states[i] = CollectionVaribleState.getNewValue(states[i], newStates[i]);
+               states[i] = CollectionVariableState.getNewValue(states[i], newStates[i]);
             }
          }
       }
@@ -254,6 +172,7 @@ SearchThroughFieldLocalStore:
 
          print("At Method "+m);
          print(result);
+         // print(fieldLocalStore.toStringDebug());
          m.addTag(new StringTag(result));
       }
 

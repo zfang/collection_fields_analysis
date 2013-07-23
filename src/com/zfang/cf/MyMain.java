@@ -18,6 +18,8 @@
  */
 package com.zfang.cf;
 
+import static com.zfang.cf.CollectionFieldsAnalysis.isFromJavaOrSunPackage;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -26,7 +28,6 @@ import java.util.Map;
 import java.util.Set;
 
 import soot.Body;
-import soot.G;
 import soot.PackManager;
 import soot.Scene;
 import soot.SceneTransformer;
@@ -38,12 +39,9 @@ import soot.jimple.toolkits.callgraph.Edge;
 import soot.toolkits.graph.ExceptionalUnitGraph;
 import soot.util.Chain;
 
-import static com.zfang.cf.CollectionFieldsAnalysis.isFromJavaOrSunPackage;
-
 public class MyMain {
 
 	public static void main(String[] args) {
-		G.v().out.println("Adding My Scene Transformer");
 		PackManager.v().getPack("wjtp").add(
 				new Transform("wjtp.myTransform", new MySceneTransformer()));
 		soot.Main.main(args);
@@ -54,7 +52,7 @@ class MySceneTransformer extends SceneTransformer {
 	protected CallGraph graph;
 
    @Override
-      protected void internalTransform(String phaseName, Map options) {
+      protected void internalTransform(String phaseName, @SuppressWarnings("rawtypes") Map options) {
          graph = Scene.v().getCallGraph();
          Chain<SootClass> classes = Scene.v().getApplicationClasses();
          ArrayList<SootMethod> methods = new ArrayList<SootMethod>();

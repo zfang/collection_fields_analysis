@@ -1,13 +1,6 @@
 package com.zfang.cf;
 
 import soot.Local;
-import soot.SootMethod;
-import soot.Value;
-import soot.jimple.CastExpr;
-import soot.jimple.DefinitionStmt;
-import soot.jimple.FieldRef;
-import soot.jimple.InvokeExpr;
-import soot.jimple.ParameterRef;
 import soot.jimple.ReturnStmt;
 import soot.jimple.Stmt;
 import soot.jimple.toolkits.pointer.InstanceKey;
@@ -33,71 +26,23 @@ public class ExternalCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
    }
 
    @Override
-      protected void collectData(Stmt d, Stmt ds) {
-         if (d instanceof DefinitionStmt) {
-            Value leftop = ((DefinitionStmt) d).getLeftOp(),
-                  rightop = ((DefinitionStmt) d).getRightOp();
-
-            if (isAssignedToCloneMethod(leftop, rightop, ds)) {
-               return;
-            }
-
-            if (!ALL_COLLECTION_NAMES.contains(leftop.getType().toString())) {
-               return;
-            }
-            // print(String.format("%s = %s; rightop class: %s",
-            //          leftop.toString(), rightop.toString(), rightop.getClass().getName()));
-            // Local variables
-            if (leftop instanceof Local) {
-               InstanceKey leftKey = getInstanceKey((Local)leftop, ds);
-               // Check if rightop is NullConstant or NewExpr
-               if (isNewOrNull(rightop)) {
-                  fieldLocalStore.addLocal(leftKey, (InstanceKey)null);
-               }
-               // Check if rightop is CastExpr
-               else if (rightop instanceof CastExpr) {
-                  fieldLocalStore.addLocal(leftKey, getInstanceKey((Local)((CastExpr)rightop).getOp(), ds));
-               }
-               // Check if rightop is Local 
-               else if (rightop instanceof Local) {
-                  fieldLocalStore.addLocal(leftKey, getInstanceKey((Local)rightop, ds));
-               }
-               // Check if rightop is FieldRef 
-               else if (rightop instanceof FieldRef) {
-                  fieldLocalStore.addAliased(getObjectFieldPair((FieldRef)rightop, ds), leftKey);
-               }
-               else if (rightop instanceof ParameterRef) {
-                  analyzeExternal(leftKey, (ParameterRef)rightop);
-               }
-               else if (rightop instanceof InvokeExpr) {
-                  analyzeExternal(d, listener);
-               }
-               else {
-                  fieldLocalStore.addUnknown(leftKey);
-               }
-            }
-
-         }
+      protected FieldLocalStoreUpdateListener getListener(Object o) {
+         return listener;
       }
+
 
    @Override
       protected void finalProcess(Stmt d) {
          if (!(d instanceof ReturnStmt)) 
             return;
 
-         Value op = ((ReturnStmt)d).getOp();
+         Local op = (Local)((ReturnStmt)d).getOp();
 
-         if (!(op instanceof Local))
-            return;
-
-         InstanceKey opKey = new InstanceKey((Local)op, d, m,
+         InstanceKey opKey = new InstanceKey(op, d, m,
                localMustAliasAnalysis, localNotMayAliasAnalysis);
 
-         if (fieldLocalStore.isAliased(opKey))
-            listener.onAliased();
-         else if (fieldLocalStore.isExternal(opKey))
-            listener.onExternal();
-         else if (fieldLocalStore.isUnknown(opKey))
-            listener.onUnknown();
+         // print(opKey);
+
+         listener.onStateChange(fieldLocalStore.getState(opKey));
       }
 }

@@ -19,6 +19,8 @@ import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
+import soot.jimple.CastExpr;
+import soot.jimple.DefinitionStmt;
 import soot.jimple.FieldRef;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.InvokeExpr;
@@ -34,51 +36,69 @@ import soot.toolkits.scalar.ForwardFlowAnalysis;
 
 public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit, FlowSet> {
 
+   class MyLocalMustAliasAnalysis extends LocalMustAliasAnalysis {
+      public MyLocalMustAliasAnalysis(ExceptionalUnitGraph g, boolean tryTrackFieldAssignments) {
+         super(g, tryTrackFieldAssignments);
+      }
+      public Set<Value> getLocalsAndFieldRefs() {
+         return localsAndFieldRefs;
+      }
+   }
+
+   class MyLocalMustNotAliasAnalysis extends LocalMustNotAliasAnalysis {
+      public MyLocalMustNotAliasAnalysis(ExceptionalUnitGraph g) {
+         super(g);
+      }
+      public Set<Local> getLocals() {
+         return locals;
+      }
+   }
+
    public static final String TAG = "CollectionFieldsAnalysis";
 
-	protected final LocalMustAliasAnalysis localMustAliasAnalysis;
-	protected final LocalMustNotAliasAnalysis localNotMayAliasAnalysis;
+   protected final MyLocalMustAliasAnalysis localMustAliasAnalysis;
+   protected final MyLocalMustNotAliasAnalysis localNotMayAliasAnalysis;
    protected final SootMethod m;
    protected final Body body;
    protected final ExceptionalUnitGraph g;
 
    protected final FieldLocalStore fieldLocalStore = new FieldLocalStore();
 
-   public static final Map<SootMethod, CollectionVaribleState[]> parameterStates =
-      new HashMap<SootMethod, CollectionVaribleState[]>();
+   public static final Map<SootMethod, CollectionVariableState[]> parameterStates =
+      new HashMap<SootMethod, CollectionVariableState[]>();
 
-   public static final Map<SootField, CollectionVaribleState> fieldMap = new LinkedHashMap<SootField, CollectionVaribleState>();
+   public static final Map<SootField, CollectionVariableState> fieldMap = new LinkedHashMap<SootField, CollectionVariableState>();
 
    @SuppressWarnings("unchecked")
-private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierarchy()
+      private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierarchy()
       .getDirectImplementersOf(
             RefType.v("java.util.Collection").getSootClass());
    // A list that contains names of all subclasses of java.util.Collection.
    public static final Set<String> ALL_COLLECTION_NAMES = new HashSet<String>()
    {{
-      for (SootClass cl : ALL_COLLECTIONS) {
-         add(cl.toString());
-      }
-      add("java.util.Collection");
-      add("java.util.List");
-      add("java.util.SortedSet");
-      add("java.util.Set");
-   }};
+       for (SootClass cl : ALL_COLLECTIONS) {
+          add(cl.toString());
+       }
+       add("java.util.Collection");
+       add("java.util.List");
+       add("java.util.SortedSet");
+       add("java.util.Set");
+    }};
 
    public static final Set<String> ALL_COLLECTION_DIRECT_IMPLEMENTER_NAMES = new HashSet<String>()
    {{
-      for (SootClass cl : ALL_COLLECTIONS) {
-         add(cl.toString());
-      }
-   }};
+       for (SootClass cl : ALL_COLLECTIONS) {
+          add(cl.toString());
+       }
+    }};
 
    protected CollectionFieldsAnalysis(ExceptionalUnitGraph exceptionalUnitGraph) {
       super(exceptionalUnitGraph);
 
-		localMustAliasAnalysis = new LocalMustAliasAnalysis(
-				exceptionalUnitGraph, true);
-		localNotMayAliasAnalysis = new LocalMustNotAliasAnalysis(
-				exceptionalUnitGraph);
+      localMustAliasAnalysis = new MyLocalMustAliasAnalysis(
+            exceptionalUnitGraph, true);
+      localNotMayAliasAnalysis = new MyLocalMustNotAliasAnalysis(
+            exceptionalUnitGraph);
 
       m = exceptionalUnitGraph.getBody().getMethod();
       body = exceptionalUnitGraph.getBody();
@@ -86,13 +106,18 @@ private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierar
    }
 
    static boolean isFromJavaOrSunPackage(SootMethod method) {
-      return isFromJavaOrSunPackage(method.getDeclaringClass().toString());
+      return isFromJavaOrSunPackage(method.getDeclaringClass());
    }
 
    static boolean isFromJavaOrSunPackage(SootField field) {
-      return isFromJavaOrSunPackage(field.getDeclaringClass().toString());
+      return isFromJavaOrSunPackage(field.getDeclaringClass());
    }
-   
+
+   static boolean isFromJavaOrSunPackage(SootClass declaringClass) {
+      return declaringClass.isJavaLibraryClass()
+         || declaringClass.isLibraryClass();
+   }
+
    static boolean isFromJavaOrSunPackage(String declaringClassName) {
       return declaringClassName.startsWith("java.") 
          || declaringClassName.startsWith("javax.")
@@ -137,13 +162,13 @@ private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierar
       print("Base" + TAG, obj);
    }
 
-   public static Map<CollectionVaribleState, Set<SootField>> getReverseFieldMap() {
-      Map<CollectionVaribleState, Set<SootField>> reverseFieldMap = new LinkedHashMap<CollectionVaribleState, Set<SootField>>();
-      for (CollectionVaribleState state : CollectionVaribleState.allStates) {
+   public static Map<CollectionVariableState, Set<SootField>> getReverseFieldMap() {
+      Map<CollectionVariableState, Set<SootField>> reverseFieldMap = new LinkedHashMap<CollectionVariableState, Set<SootField>>();
+      for (CollectionVariableState state : CollectionVariableState.allStates) {
          reverseFieldMap.put(state, new LinkedHashSet<SootField>());
       }
 
-      for (Map.Entry<SootField, CollectionVaribleState> entry : fieldMap.entrySet()) {
+      for (Map.Entry<SootField, CollectionVariableState> entry : fieldMap.entrySet()) {
          reverseFieldMap.get(entry.getValue()).add(entry.getKey());
       }
 
@@ -151,9 +176,9 @@ private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierar
    }
 
    public static void printReverseFieldMap() {
-      Map<CollectionVaribleState, Set<SootField>> reverseFieldMap = getReverseFieldMap();
+      Map<CollectionVariableState, Set<SootField>> reverseFieldMap = getReverseFieldMap();
       StringBuilder stringBuilder = new StringBuilder();
-      for (Map.Entry<CollectionVaribleState, Set<SootField>> entry : reverseFieldMap.entrySet()) {
+      for (Map.Entry<CollectionVariableState, Set<SootField>> entry : reverseFieldMap.entrySet()) {
          stringBuilder
             .append(entry.getKey().name())
             .append(": ")
@@ -174,42 +199,38 @@ private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierar
 
       if (o instanceof ObjectFieldPair) {
          field = (ObjectFieldPair)o;
-         fieldLocalStore.removeField(field);
+         fieldLocalStore.remove(field);
       }
       else if (o instanceof InstanceKey) {
          local = (InstanceKey)o;
       }
 
-      CollectionVaribleState [] states = parameterStates.get(m);
+      CollectionVariableState [] states = parameterStates.get(m);
 
       if (null == states) {
-         fieldLocalStore.addToStore(field, local, CollectionVaribleState.EXTERNAL);
+         fieldLocalStore.addToStore(field, local, CollectionVariableState.UNKNOWN);
          return;
       }
 
       if (param.getIndex() >= states.length)
          return;
 
-      CollectionVaribleState state = states[param.getIndex()];
+      CollectionVariableState state = states[param.getIndex()];
 
       fieldLocalStore.addToStore(field, local, state);
    }
 
    protected void analyzeExternal(Stmt d, FieldLocalStoreUpdateListener listener) {
       SootMethod method = d.getInvokeExpr().getMethod();
+
       if (method.isStatic() && method.getDeclaringClass().getName().equals("java.util.Collections")) {
+         listener.onStateChange(CollectionVariableState.NONALIASED);
          listener.finalize();
          return;
       }
 
       if (isFromJavaOrSunPackage(method)) {
-         listener.onExternal();
-         listener.finalize();
-         return;
-      }
-
-      if (ALL_COLLECTION_DIRECT_IMPLEMENTER_NAMES.contains(method.getDeclaringClass().getName())
-            && method.getName().equals("clone")) {
+         listener.onStateChange(CollectionVariableState.EXTERNAL);
          listener.finalize();
          return;
       }
@@ -236,14 +257,94 @@ private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierar
                fieldLocalStore.addLocal(getInstanceKey((Local)leftop, ds), (InstanceKey)null);
                return true;
             }
-         }
+               }
       }
 
       return false;
    }
 
+   protected FieldLocalStoreUpdateListener getListener(Object o) {
+      return new FieldLocalStoreUpdateListener(o, fieldLocalStore);
+   }
 
-   abstract protected void collectData(Stmt d, Stmt ds);
+   protected void collectData(Stmt d, Stmt ds) {
+      // print(d);
+      // for (Value value : localMustAliasAnalysis.getLocalsAndFieldRefs()) {
+      //    if (value instanceof Local)
+      //       print(value + ": " + localMustAliasAnalysis.instanceKeyString((Local)value, d));
+      // }
+      // print(localNotMayAliasAnalysis.getLocals());
+      if (d instanceof DefinitionStmt) {
+         Value leftop = ((DefinitionStmt) d).getLeftOp(),
+               rightop = ((DefinitionStmt) d).getRightOp();
+
+         if (isAssignedToCloneMethod(leftop, rightop, ds)) {
+            return;
+         }
+
+         if (!ALL_COLLECTION_NAMES.contains(leftop.getType().toString())) {
+            return;
+         }
+         // print(String.format("%s = %s; rightop class: %s",
+         //          leftop.toString(), rightop.toString(), rightop.getClass().getName()));
+         // Field references
+         if (leftop instanceof FieldRef) {
+            ObjectFieldPair objectFieldPair = getObjectFieldPair((FieldRef)leftop, ds);
+            // Check if rightop is NullConstant or NewExpr
+            if (isNewOrNull(rightop)) {
+               fieldLocalStore.addField(objectFieldPair, null);
+            }
+            // Check if rightop is CastExpr
+            else if (rightop instanceof CastExpr) {
+               fieldLocalStore.addField(objectFieldPair, getInstanceKey((Local)rightop, ds));
+            }
+            // Check if rightop is Local
+            else if (rightop instanceof Local) {
+               fieldLocalStore.addField(objectFieldPair, getInstanceKey((Local)rightop, ds));
+            }
+            else if (rightop instanceof ParameterRef) {
+               analyzeExternal(objectFieldPair, (ParameterRef)rightop);
+            }
+            else if (rightop instanceof InvokeExpr) {
+               analyzeExternal(d, getListener(objectFieldPair));
+            }
+            else {
+               fieldLocalStore.addUnknown(objectFieldPair);
+            }
+         }
+         // Local variables
+         else if (leftop instanceof Local) {
+            InstanceKey leftKey = getInstanceKey((Local)leftop, ds);
+            // Check if rightop is NullConstant or NewExpr
+            if (isNewOrNull(rightop)) {
+               fieldLocalStore.addLocal(leftKey, (InstanceKey)null);
+            }
+            // Check if rightop is CastExpr
+            else if (rightop instanceof CastExpr) {
+               fieldLocalStore.addLocal(leftKey, getInstanceKey((Local)((CastExpr)rightop).getOp(), ds));
+            }
+            // Check if rightop is Local 
+            else if (rightop instanceof Local) {
+               fieldLocalStore.addLocal(leftKey, getInstanceKey((Local)rightop, ds));
+            }
+            // Check if rightop is FieldRef 
+            else if (rightop instanceof FieldRef) {
+               fieldLocalStore.addLocal(leftKey, getObjectFieldPair((FieldRef)rightop, ds));
+            }
+            else if (rightop instanceof ParameterRef) {
+               analyzeExternal(leftKey, (ParameterRef)rightop);
+            }
+            else if (rightop instanceof InvokeExpr) {
+               analyzeExternal(d, getListener(leftKey));
+            }
+            else {
+               fieldLocalStore.addUnknown(leftKey);
+            }
+         }
+         // print(fieldLocalStore.toStringDebug());
+      }
+
+   }
 
    abstract protected void finalProcess(Stmt d);
 
@@ -276,7 +377,6 @@ private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierar
    @Override
       protected void copy(FlowSet source, FlowSet dest) {
          source.copy(dest);
-
       }
 
    @Override

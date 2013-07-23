@@ -5,10 +5,12 @@ import java.util.ArrayList;
 public class Test4 {
    public List f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, f13, f14, f15, f16;
    public static void main(String [] args) {
+      boolean b1 = true;
       Test4 t1 = new Test4();
       List l1 = getList(true);
       List l2 = l1;
       t1.f1 = l2;
+      t1.f2 = b1 ? getList(b1) : getList2(b1);
       List l3 = t1.f2;
       test(l1, getList(false), l1, l2, t1.f1, l3);
    }

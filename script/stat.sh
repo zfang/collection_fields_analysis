@@ -1,25 +1,30 @@
 #!/bin/bash
-nonAliasedFields=0
-for i in `cat $@ | sed -rn 's/.*nonAliasedFields size: ([0-9]+)/\1/p'`; do
-   nonAliasedFields=$(( $nonAliasedFields + $i ))
+Methods=0
+for i in `cat $@ | sed -rn 's/\[Main\]: At Method .*/1/p'`; do
+   Methods=$(( $Methods + 1 ))
 done
-echo "Total number of nonAliasedFields fields: $nonAliasedFields"
+echo "Total number of methods: $Methods"
 
-finalAliasedFieldStore=0
-for i in `cat $@ | sed -rn 's/.*finalAliasedFieldStore size: ([0-9]+)/\1/p'`; do
-   finalAliasedFieldStore=$(( $finalAliasedFieldStore + $i ))
+NONALIASED=0
+for i in `cat $@ | sed -rn 's/\[Main\]: NONALIASED fields size: ([0-9]+)/\1/p'`; do
+   NONALIASED=$(( $NONALIASED + $i ))
 done
-echo "Total number of finalAliasedFieldStore fields: $finalAliasedFieldStore"
+printf "Average number of NONALIASED fields: %.3f\n" $( bc -l <<< "$NONALIASED / $Methods" )
 
-externalFields=0
-for i in `cat $@ | sed -rn 's/.*externalFields size: ([0-9]+)/\1/p'`;
-do
-   externalFields=$(( "xternalFields + $i ))
+ALIASED=0
+for i in `cat $@ | sed -rn 's/\[Main\]: ALIASED fields size: ([0-9]+)/\1/p'`; do
+   ALIASED=$(( $ALIASED + $i ))
 done
-echo "Total number of externalFields fields: "xternalFields"
+printf "Average number of ALIASED fields: %.3f\n" $( bc -l <<< "$ALIASED / $Methods" )
 
-unknownFields=0
-for i in `cat $@ | sed -rn 's/.*unknownFields size: ([0-9]+)/\1/p'`; do
-   unknownFields=$(( $unknownFields + $i ))
+EXTERNAL=0
+for i in `cat $@ | sed -rn 's/\[Main\]: EXTERNAL fields size: ([0-9]+)/\1/p'`; do
+   EXTERNAL=$(( $EXTERNAL + $i ))
 done
-echo "Total number of unknownFields fields: $unknownFields"
+printf "Average number of EXTERNAL fields: %.3f\n" $( bc -l <<< "$EXTERNAL / $Methods" )
+
+UNKNOWN=0
+for i in `cat $@ | sed -rn 's/\[Main\]: UNKNOWN fields size: ([0-9]+)/\1/p'`; do
+   UNKNOWN=$(( $UNKNOWN + $i ))
+done
+printf "Average number of UNKNOWN fields: %.3f\n" $( bc -l <<< "$UNKNOWN / $Methods" )

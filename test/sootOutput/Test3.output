@@ -1,12 +1,12 @@
 [Main]: At Method <Test3: void main(java.lang.String[])>
-[Main]: nonAliasedFields: [1(r2):<Test3: java.util.List f5>, 1(r2):<Test3: java.util.List f1>, 1(r2):<Test3: java.util.List f3>]
-[Main]: nonAliasedFields size: 3
-[Main]: finalAliasedFieldStore: [{field=[1(r2):<Test3: java.util.List f2>, 1(r2):<Test3: java.util.List f4>], local=[4($r6), 6($r8), 7($r9)]}]
-[Main]: finalAliasedFieldStore size: 2
-[Main]: externalFields: []
-[Main]: externalFields size: 0
-[Main]: unknownFields: []
-[Main]: unknownFields size: 0
+[Main]: ALIASED fields: [{field=[1(r2):<Test3: java.util.List f2>, 1(r2):<Test3: java.util.List f4>], local=[4($r6), 6($r8), 7($r9)]}]
+[Main]: ALIASED fields size: 2
+[Main]: EXTERNAL fields: []
+[Main]: EXTERNAL fields size: 0
+[Main]: UNKNOWN fields: []
+[Main]: UNKNOWN fields size: 0
+[Main]: NONALIASED fields: [1(r2):<Test3: java.util.List f5>, 1(r2):<Test3: java.util.List f1>, 1(r2):<Test3: java.util.List f3>]
+[Main]: NONALIASED fields size: 3
 [Base]: ALIASED: [<Test3: java.util.List f2>, <Test3: java.util.List f4>]
 [Base]: ALIASED size: 2
 [Base]: EXTERNAL: []

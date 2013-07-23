@@ -1,14 +1,15 @@
 package com.zfang.cf;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
+import soot.Local;
 import soot.jimple.toolkits.pointer.InstanceKey;
 
 public class FieldLocalMap implements Cloneable {
 
-   private Set<InstanceKey> localSet = new LinkedHashSet<InstanceKey>();
-   private Set<ObjectFieldPair> fieldSet = new LinkedHashSet<ObjectFieldPair>();
+   private List<InstanceKey> localSet = new ArrayList<InstanceKey>();
+   private List<ObjectFieldPair> fieldSet = new ArrayList<ObjectFieldPair>();
 
 	public int hashCode() {
       int hashCode = 0;   
@@ -38,26 +39,26 @@ public class FieldLocalMap implements Cloneable {
    public FieldLocalMap clone() {
       FieldLocalMap clone = new FieldLocalMap();
       for (InstanceKey local : localSet)
-         clone.addToLocalSet(local);
+         clone.addToLocals(local);
       for (ObjectFieldPair field : fieldSet)
-         clone.addToFieldSet(field);
+         clone.addToFields(field);
       return clone;
    }
 
-   public Set<InstanceKey> getLocalSet() {
+   public List<InstanceKey> getLocals() {
       return localSet;
    }
 
-   public Set<ObjectFieldPair> getFieldSet() {
+   public List<ObjectFieldPair> getFields() {
       return fieldSet;
    }
 
-   public void addToLocalSet(InstanceKey local) {
+   public void addToLocals(InstanceKey local) {
       if (null != local)
          localSet.add(local);
    }
    
-   public void addToFieldSet(ObjectFieldPair field) {
+   public void addToFields(ObjectFieldPair field) {
       if (null != field)
          fieldSet.add(field);
    }
@@ -68,6 +69,14 @@ public class FieldLocalMap implements Cloneable {
 
    public boolean containsLocal(InstanceKey local) {
       return localSet.contains(local);
+   }
+
+   public boolean containsLocal(Local l) {
+      for (InstanceKey local : localSet) {
+         if (local.getLocal().equals(l))
+            return true;
+      }
+      return false;
    }
 
 

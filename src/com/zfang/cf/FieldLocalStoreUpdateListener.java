@@ -12,26 +12,18 @@ public class FieldLocalStoreUpdateListener {
    private final Object obj;
    private final FieldLocalStore store;
 
-   private CollectionVaribleState state;
+   private CollectionVariableState state = CollectionVariableState.lastValue();
 
    private final Set<SootMethod> methods = new HashSet<SootMethod>();
 
    public FieldLocalStoreUpdateListener(Object o, FieldLocalStore s) {
       obj = o;
       store = s;
-      state = CollectionVaribleState.NONALIASED;
    }
 
-   public void onAliased() {
-      state = CollectionVaribleState.getNewValue(state, CollectionVaribleState.ALIASED);
-   }
-
-   public void onExternal() {
-      state = CollectionVaribleState.getNewValue(state, CollectionVaribleState.EXTERNAL);
-   }
-
-   public void onUnknown() {
-      state = CollectionVaribleState.getNewValue(state, CollectionVaribleState.UNKNOWN);
+   public void onStateChange(CollectionVariableState newState) {
+      // CollectionFieldsAnalysis.print("onStateChange: newState => " + newState.name());
+      state = CollectionVariableState.getNewValue(state, newState);
    }
 
    public void onAnalyzeExternal(SootMethod m) {
@@ -50,6 +42,7 @@ public class FieldLocalStoreUpdateListener {
    }
 
    public void finalize() {
+      // CollectionFieldsAnalysis.print("finalize: state => " + state.name());
       if (obj instanceof ObjectFieldPair) {
          ObjectFieldPair field = (ObjectFieldPair)obj;
          switch (state) {
