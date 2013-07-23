@@ -267,7 +267,7 @@ public class FieldLocalStore implements Cloneable {
          for (FieldLocalMap fieldLocalMap : getFieldStore(state)) {
             if (state == CollectionVariableState.ALIASED) {
                if (fieldLocalMap.containsField(field)) {
-                  return CollectionVariableState.ALIASED;
+                  return state;
                }
             }
             else {
@@ -298,7 +298,7 @@ public class FieldLocalStore implements Cloneable {
          for (FieldLocalMap fieldLocalMap : getFieldStore(state)) {
             if (state == CollectionVariableState.ALIASED) {
                if (fieldLocalMap.containsLocal(local)) {
-                  return CollectionVariableState.ALIASED;
+                  return state;
                }
             }
             else {
@@ -323,16 +323,20 @@ public class FieldLocalStore implements Cloneable {
    }
 
    public CollectionVariableState getState(Local local) {
+      CollectionVariableState finalState = CollectionVariableState.lastValue();
+
       for (CollectionVariableState state : CollectionVariableState.allStates) {
          for (FieldLocalMap fieldLocalMap : getFieldStore(state)) {
             if (state == CollectionVariableState.ALIASED) {
                if (fieldLocalMap.containsLocal(local)) {
-                  return CollectionVariableState.ALIASED;
+                  finalState = CollectionVariableState.getNewValue(finalState,
+                        state);
                }
             }
             else {
                if (fieldLocalMap.containsLocal(local)) {
-                  return fieldLocalMap.getFields().size() <= 1 ? state: CollectionVariableState.ALIASED;
+                  finalState = CollectionVariableState.getNewValue(finalState,
+                        fieldLocalMap.getFields().size() <= 1 ? state: CollectionVariableState.ALIASED);
                }
             }
          }
@@ -344,11 +348,11 @@ public class FieldLocalStore implements Cloneable {
          }
          for (InstanceKey l : getLocals(state)) {
             if (l.getLocal().equals(local))
-               return state;
+               finalState = CollectionVariableState.getNewValue(finalState, state);
          }
       }
 
-      return CollectionVariableState.NOINFO;
+      return finalState;
    }
 
    public void setFinalAliasedFieldStore(Set<FieldLocalMap> store) {

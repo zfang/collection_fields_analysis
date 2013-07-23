@@ -69,6 +69,8 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
 
    public static final Map<SootField, CollectionVariableState> fieldMap = new LinkedHashMap<SootField, CollectionVariableState>();
 
+   public static final Map<SootMethod, FieldLocalStore> fieldLocalStoreMap = new LinkedHashMap<SootMethod, FieldLocalStore>();
+
    @SuppressWarnings("unchecked")
       private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierarchy()
       .getDirectImplementersOf(
@@ -116,12 +118,6 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
    static boolean isFromJavaOrSunPackage(SootClass declaringClass) {
       return declaringClass.isJavaLibraryClass()
          || declaringClass.isLibraryClass();
-   }
-
-   static boolean isFromJavaOrSunPackage(String declaringClassName) {
-      return declaringClassName.startsWith("java.") 
-         || declaringClassName.startsWith("javax.")
-         || declaringClassName.startsWith("sun.");
    }
 
    public static boolean isNewOrNull(Value op) {
