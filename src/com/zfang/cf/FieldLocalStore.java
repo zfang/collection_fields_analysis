@@ -62,13 +62,13 @@ public class FieldLocalStore implements Cloneable {
       }
    }
 
-   public void remove(ObjectFieldPair objectFieldPair) {
+   public boolean remove(ObjectFieldPair objectFieldPair) {
       for (CollectionVariableState state : CollectionVariableState.allStates) {
          List<ObjectFieldPair> fields = getFields(state);
          if (null == fields)
             continue;
          if (fields.remove(objectFieldPair)) {
-            return;
+            return true;
          }
       }
       for (CollectionVariableState state : CollectionVariableState.allStates) {
@@ -77,19 +77,21 @@ public class FieldLocalStore implements Cloneable {
             continue;
          for (FieldLocalMap fieldLocalMap : store) {
             if (fieldLocalMap.getFields().remove(objectFieldPair)) {
-               return;
+               return true;
             }
          }
       }
+
+      return false;
    }
 
-   public void remove(InstanceKey localKey) {
+   public boolean remove(InstanceKey localKey) {
       for (CollectionVariableState state : CollectionVariableState.allStates) {
          List<InstanceKey> locals = getLocals(state);
          if (null == locals)
             continue;
          if (locals.remove(localKey)) {
-            return;
+            return true;
          }
       }
 
@@ -99,10 +101,12 @@ public class FieldLocalStore implements Cloneable {
             continue;
          for (FieldLocalMap fieldLocalMap : store) {
             if (fieldLocalMap.getLocals().remove(localKey)) {
-               return;
+               return true;
             }
          }
       }
+      
+      return false;
    }
 
    public void addToStore(final ObjectFieldPair objectFieldPair, final InstanceKey local, CollectionVariableState state) {
@@ -152,7 +156,7 @@ public class FieldLocalStore implements Cloneable {
       }
 
       CollectionVariableState state = getState(rightKey);
-      
+
       remove(rightKey);
 
       addToStore(objectFieldPair, rightKey, state);
