@@ -159,7 +159,9 @@ public class FieldLocalStore implements Cloneable {
 
       remove(rightKey);
 
-      addToStore(objectFieldPair, rightKey, state);
+      addToStore(objectFieldPair, rightKey, 
+            state == CollectionVariableState.NOINFO ?
+            CollectionVariableState.UNKNOWN : state);
    }
 
    public void addLocal(InstanceKey leftKey, InstanceKey rightKey) {
