@@ -46,19 +46,12 @@ public class FieldLocalStoreUpdateListener {
       if (obj instanceof ObjectFieldPair) {
          ObjectFieldPair field = (ObjectFieldPair)obj;
          switch (state) {
+            case ALIASED_IMMUTABLE:
             case ALIASED:
-               store.addAliased(field, null);
-               break;
-            case EXTERNAL:
-               store.addExternal(field);
-               break;
-            case UNKNOWN:
-               store.addUnknown(field);
-               break;
-            case NONALIASED:
-               store.addField(field, (InstanceKey)null);
+               store.addAliased(field, null, state);
                break;
             default:
+               store.addField(field, state);
                break;
          }
          return;
@@ -66,19 +59,12 @@ public class FieldLocalStoreUpdateListener {
       if (obj instanceof InstanceKey) {
          InstanceKey local = (InstanceKey)obj;
          switch (state) {
+            case ALIASED_IMMUTABLE:
             case ALIASED:
-               store.addAliased(null, local);
-               break;
-            case EXTERNAL:
-               store.addExternal(local);
-               break;
-            case UNKNOWN:
-               store.addUnknown(local);
-               break;
-            case NONALIASED:
-               store.addLocal(local, (InstanceKey)null);
+               store.addAliased(null, local, state);
                break;
             default:
+               store.addLocal(local, state);
                break;
          }
          return;

@@ -1,30 +1,24 @@
 #!/bin/bash
+args=$@
+tag="\[Main\]"
+
 Methods=0
-for i in `cat $@ | sed -rn 's/\[Main\]: At Method .*/1/p'`; do
+for i in `cat $args | sed -rn "s/$tag: At Method .*/1/p"`; do
    Methods=$(( $Methods + 1 ))
 done
 echo "Total number of methods: $Methods"
 
-NONALIASED=0
-for i in `cat $@ | sed -rn 's/\[Main\]: NONALIASED fields size: ([0-9]+)/\1/p'`; do
-   NONALIASED=$(( $NONALIASED + $i ))
-done
-printf "Average number of NONALIASED fields: %.3f\n" $( bc -l <<< "$NONALIASED / $Methods" )
+msg_format="Average number of %s fields: %.3f\n"
 
-ALIASED=0
-for i in `cat $@ | sed -rn 's/\[Main\]: ALIASED fields size: ([0-9]+)/\1/p'`; do
-   ALIASED=$(( $ALIASED + $i ))
-done
-printf "Average number of ALIASED fields: %.3f\n" $( bc -l <<< "$ALIASED / $Methods" )
+count_fields() {
+   COUNT=0
+   for i in `cat $args | sed -rn "s/$tag: $1 fields size: ([0-9]+)/\1/p"`; do
+      COUNT=$(( $COUNT + $i ))
+   done
+   printf "$msg_format" "$1" $( bc -l <<< "$COUNT / $Methods" )
+}
 
-EXTERNAL=0
-for i in `cat $@ | sed -rn 's/\[Main\]: EXTERNAL fields size: ([0-9]+)/\1/p'`; do
-   EXTERNAL=$(( $EXTERNAL + $i ))
+for i in ALIASED_IMMUTABLE ALIASED EXTERNAL UNKNOWN DISTINCT
+do
+   count_fields $i
 done
-printf "Average number of EXTERNAL fields: %.3f\n" $( bc -l <<< "$EXTERNAL / $Methods" )
-
-UNKNOWN=0
-for i in `cat $@ | sed -rn 's/\[Main\]: UNKNOWN fields size: ([0-9]+)/\1/p'`; do
-   UNKNOWN=$(( $UNKNOWN + $i ))
-done
-printf "Average number of UNKNOWN fields: %.3f\n" $( bc -l <<< "$UNKNOWN / $Methods" )

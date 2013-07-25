@@ -1,26 +1,18 @@
 [Main]: At Method <Test5: void setEntrySet()>
-[Main]: ALIASED fields: []
-[Main]: ALIASED fields size: 0
 [Main]: EXTERNAL fields: [0(r0):<Test5: java.util.Set _entrySet>]
 [Main]: EXTERNAL fields size: 1
-[Main]: UNKNOWN fields: []
-[Main]: UNKNOWN fields size: 0
-[Main]: NONALIASED fields: []
-[Main]: NONALIASED fields size: 0
 [Main]: At Method <Test5: void main(java.lang.String[])>
-[Main]: ALIASED fields: [{field=[1(r2):<Test5: java.util.List f1>, 1(r2):<Test5: java.util.List f4>], local=[2($r3), 5($r6)]}]
-[Main]: ALIASED fields size: 2
-[Main]: EXTERNAL fields: []
-[Main]: EXTERNAL fields size: 0
-[Main]: UNKNOWN fields: [1(r2):<Test5: java.util.List f3>]
-[Main]: UNKNOWN fields size: 1
+[Main]: 
+[Main]: At Method <Test5: void test(java.util.List)>
+[Main]: ALIASED_IMMUTABLE fields: [{field=[1(r2):<Test5: java.util.List f5>], local=[-1(r0)]}, {field=[1(r2):<Test5: java.util.List f1>, 1(r2):<Test5: java.util.List f4>], local=[2($r3), 5($r6)]}, {field=[1(r2):<Test5: java.util.List f3>], local=[4($r5)]}]
+[Main]: ALIASED_IMMUTABLE fields size: 4
 [Main]: NONALIASED fields: [1(r2):<Test5: java.util.List f2>]
 [Main]: NONALIASED fields size: 1
-[Base]: ALIASED: [<Test5: java.util.List f1>, <Test5: java.util.List f4>]
-[Base]: ALIASED size: 2
+[Main]: At Method <Test5: java.util.List getList1()>
+[Main]: 
+[Base]: ALIASED_IMMUTABLE: [<Test5: java.util.List f5>, <Test5: java.util.List f1>, <Test5: java.util.List f4>, <Test5: java.util.List f3>]
+[Base]: ALIASED_IMMUTABLE size: 4
 [Base]: EXTERNAL: [<Test5: java.util.Set _entrySet>]
 [Base]: EXTERNAL size: 1
-[Base]: UNKNOWN: [<Test5: java.util.List f3>]
-[Base]: UNKNOWN size: 1
 [Base]: NONALIASED: [<Test5: java.util.List f2>]
 [Base]: NONALIASED size: 1

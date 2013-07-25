@@ -1,5 +1,6 @@
 package com.zfang.cf;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -120,6 +121,18 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
          || declaringClass.isLibraryClass();
    }
 
+   private static Set<String> CollectionsStaticImmutableFieldNames = new HashSet<String>() {{
+      add("EMPTY_LIST");
+      add("EMPTY_MAP");
+      add("EMPTY_SET");
+   }};
+
+   static boolean isCollectionsImmutableContainer(SootField field) {
+      return field.getDeclaringClass().getName().equals("java.util.Collections")
+         && field.isStatic()
+         && CollectionsStaticImmutableFieldNames.contains(field.getName());
+   }
+
    public static boolean isNewOrNull(Value op) {
       return (op instanceof soot.jimple.NullConstant 
             || op.getType() instanceof soot.NullType
@@ -161,6 +174,9 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
    public static Map<CollectionVariableState, Set<SootField>> getReverseFieldMap() {
       Map<CollectionVariableState, Set<SootField>> reverseFieldMap = new LinkedHashMap<CollectionVariableState, Set<SootField>>();
       for (CollectionVariableState state : CollectionVariableState.allStates) {
+         if (state == CollectionVariableState.NOINFO)
+            continue;
+
          reverseFieldMap.put(state, new LinkedHashSet<SootField>());
       }
 
@@ -175,6 +191,9 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
       Map<CollectionVariableState, Set<SootField>> reverseFieldMap = getReverseFieldMap();
       StringBuilder stringBuilder = new StringBuilder();
       for (Map.Entry<CollectionVariableState, Set<SootField>> entry : reverseFieldMap.entrySet()) {
+         if (entry.getValue().isEmpty())
+            continue;
+
          stringBuilder
             .append(entry.getKey().name())
             .append(": ")
@@ -204,7 +223,7 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
       CollectionVariableState [] states = parameterStates.get(m);
 
       if (null == states) {
-         fieldLocalStore.addToStore(field, local, CollectionVariableState.UNKNOWN);
+         fieldLocalStore.addToStore(field, local, CollectionVariableState.NOINFO);
          return;
       }
 
@@ -220,7 +239,7 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
       SootMethod method = d.getInvokeExpr().getMethod();
 
       if (method.isStatic() && method.getDeclaringClass().getName().equals("java.util.Collections")) {
-         listener.onStateChange(CollectionVariableState.NONALIASED);
+         listener.onStateChange(CollectionVariableState.DISTINCT);
          listener.finalize();
          return;
       }
@@ -246,11 +265,12 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
          if (ALL_COLLECTION_DIRECT_IMPLEMENTER_NAMES.contains(method.getDeclaringClass().getName())
                && method.getName().equals("clone")) {
             if (leftop instanceof FieldRef) {
-               fieldLocalStore.addField(getObjectFieldPair((FieldRef)leftop, ds), null);
+               fieldLocalStore.addField(getObjectFieldPair((FieldRef)leftop, ds), 
+                     CollectionVariableState.DISTINCT);
                return true;
             }
             else if (leftop instanceof Local) {
-               fieldLocalStore.addLocal(getInstanceKey((Local)leftop, ds), (InstanceKey)null);
+               fieldLocalStore.addLocal(getInstanceKey((Local)leftop, ds), CollectionVariableState.DISTINCT);
                return true;
             }
                }
@@ -261,6 +281,60 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
 
    protected FieldLocalStoreUpdateListener getListener(Object o) {
       return new FieldLocalStoreUpdateListener(o, fieldLocalStore);
+   }
+
+   protected void processFieldRef(Value leftop, Value rightop, Stmt d, Stmt ds) {
+      ObjectFieldPair objectFieldPair = getObjectFieldPair((FieldRef)leftop, ds);
+      // Check if rightop is NullConstant or NewExpr
+      if (isNewOrNull(rightop)) {
+         fieldLocalStore.addField(objectFieldPair, CollectionVariableState.DISTINCT);
+      }
+      // Check if rightop is CastExpr
+      else if (rightop instanceof CastExpr) {
+         fieldLocalStore.addField(objectFieldPair, getInstanceKey((Local)rightop, ds));
+      }
+      // Check if rightop is Local
+      else if (rightop instanceof Local) {
+         fieldLocalStore.addField(objectFieldPair, getInstanceKey((Local)rightop, ds));
+      }
+      else if (rightop instanceof ParameterRef) {
+         analyzeExternal(objectFieldPair, (ParameterRef)rightop);
+      }
+      else if (rightop instanceof InvokeExpr) {
+         analyzeExternal(d, getListener(objectFieldPair));
+      }
+      else {
+         fieldLocalStore.addField(objectFieldPair, CollectionVariableState.UNKNOWN);
+      }
+   }
+
+   protected void processLocal(Value leftop, Value rightop, Stmt d, Stmt ds) {
+      InstanceKey leftKey = getInstanceKey((Local)leftop, ds);
+      // Check if rightop is NullConstant or NewExpr
+      if (isNewOrNull(rightop)) {
+         fieldLocalStore.addLocal(leftKey, CollectionVariableState.DISTINCT);
+      }
+      // Check if rightop is CastExpr
+      else if (rightop instanceof CastExpr) {
+         fieldLocalStore.addLocal(leftKey, getInstanceKey((Local)((CastExpr)rightop).getOp(), ds));
+      }
+      // Check if rightop is Local 
+      else if (rightop instanceof Local) {
+         fieldLocalStore.addLocal(leftKey, getInstanceKey((Local)rightop, ds));
+      }
+      // Check if rightop is FieldRef 
+      else if (rightop instanceof FieldRef) {
+         fieldLocalStore.addLocal(leftKey, getObjectFieldPair((FieldRef)rightop, ds));
+      }
+      else if (rightop instanceof ParameterRef) {
+         analyzeExternal(leftKey, (ParameterRef)rightop);
+      }
+      else if (rightop instanceof InvokeExpr) {
+         analyzeExternal(d, getListener(leftKey));
+      }
+      else {
+         fieldLocalStore.addLocal(leftKey, CollectionVariableState.UNKNOWN);
+      }
    }
 
    protected void collectData(Stmt d, Stmt ds) {
@@ -285,57 +359,11 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
          //          leftop.toString(), rightop.toString(), rightop.getClass().getName()));
          // Field references
          if (leftop instanceof FieldRef) {
-            ObjectFieldPair objectFieldPair = getObjectFieldPair((FieldRef)leftop, ds);
-            // Check if rightop is NullConstant or NewExpr
-            if (isNewOrNull(rightop)) {
-               fieldLocalStore.addField(objectFieldPair, null);
-            }
-            // Check if rightop is CastExpr
-            else if (rightop instanceof CastExpr) {
-               fieldLocalStore.addField(objectFieldPair, getInstanceKey((Local)rightop, ds));
-            }
-            // Check if rightop is Local
-            else if (rightop instanceof Local) {
-               fieldLocalStore.addField(objectFieldPair, getInstanceKey((Local)rightop, ds));
-            }
-            else if (rightop instanceof ParameterRef) {
-               analyzeExternal(objectFieldPair, (ParameterRef)rightop);
-            }
-            else if (rightop instanceof InvokeExpr) {
-               analyzeExternal(d, getListener(objectFieldPair));
-            }
-            else {
-               fieldLocalStore.addUnknown(objectFieldPair);
-            }
+            processFieldRef(leftop, rightop, d, ds);
          }
          // Local variables
          else if (leftop instanceof Local) {
-            InstanceKey leftKey = getInstanceKey((Local)leftop, ds);
-            // Check if rightop is NullConstant or NewExpr
-            if (isNewOrNull(rightop)) {
-               fieldLocalStore.addLocal(leftKey, (InstanceKey)null);
-            }
-            // Check if rightop is CastExpr
-            else if (rightop instanceof CastExpr) {
-               fieldLocalStore.addLocal(leftKey, getInstanceKey((Local)((CastExpr)rightop).getOp(), ds));
-            }
-            // Check if rightop is Local 
-            else if (rightop instanceof Local) {
-               fieldLocalStore.addLocal(leftKey, getInstanceKey((Local)rightop, ds));
-            }
-            // Check if rightop is FieldRef 
-            else if (rightop instanceof FieldRef) {
-               fieldLocalStore.addLocal(leftKey, getObjectFieldPair((FieldRef)rightop, ds));
-            }
-            else if (rightop instanceof ParameterRef) {
-               analyzeExternal(leftKey, (ParameterRef)rightop);
-            }
-            else if (rightop instanceof InvokeExpr) {
-               analyzeExternal(d, getListener(leftKey));
-            }
-            else {
-               fieldLocalStore.addUnknown(leftKey);
-            }
+            processLocal(leftop, rightop, d, ds);
          }
          // print(fieldLocalStore.toStringDebug());
       }

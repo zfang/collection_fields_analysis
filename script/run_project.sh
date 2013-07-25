@@ -1,2 +1,4 @@
 #!/bin/bash
-PROJECT=../../$1/ ./run.sh > ../$1_collection_fields_result.txt
+project=$1
+shift
+PROJECT=../../$project/ ./run.sh $@ > ../${project}_collection_fields_result.txt

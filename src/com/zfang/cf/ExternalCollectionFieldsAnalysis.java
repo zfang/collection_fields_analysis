@@ -1,6 +1,7 @@
 package com.zfang.cf;
 
 import soot.Local;
+import soot.Value;
 import soot.jimple.ReturnStmt;
 import soot.jimple.Stmt;
 import soot.jimple.toolkits.pointer.InstanceKey;
@@ -36,13 +37,20 @@ public class ExternalCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
          if (!(d instanceof ReturnStmt)) 
             return;
 
-         Local op = (Local)((ReturnStmt)d).getOp();
+         Value op = ((ReturnStmt)d).getOp();
 
-         InstanceKey opKey = new InstanceKey(op, d, m,
-               localMustAliasAnalysis, localNotMayAliasAnalysis);
+         if (isNewOrNull(op)) {
+            listener.onStateChange(CollectionVariableState.DISTINCT);
+            return;
+         }
 
-         // print(opKey);
+         if (op instanceof Local) {
+            InstanceKey opKey = new InstanceKey((Local)op, d, m,
+                  localMustAliasAnalysis, localNotMayAliasAnalysis);
 
-         listener.onStateChange(fieldLocalStore.getState(opKey));
+            // print(opKey);
+
+            listener.onStateChange(fieldLocalStore.getState(opKey));
+         }
       }
 }

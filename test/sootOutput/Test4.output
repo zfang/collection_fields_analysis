@@ -1,35 +1,18 @@
 [Main]: At Method <Test4: void main(java.lang.String[])>
-[Main]: ALIASED fields: []
-[Main]: ALIASED fields size: 0
-[Main]: EXTERNAL fields: []
-[Main]: EXTERNAL fields size: 0
 [Main]: UNKNOWN fields: [1(r1):<Test4: java.util.List f2>]
 [Main]: UNKNOWN fields size: 1
 [Main]: NONALIASED fields: [1(r1):<Test4: java.util.List f1>]
 [Main]: NONALIASED fields size: 1
-[Main]: At Method <Test4: java.util.List getList2(boolean)>
-[Main]: ALIASED fields: []
-[Main]: ALIASED fields size: 0
-[Main]: EXTERNAL fields: []
-[Main]: EXTERNAL fields size: 0
-[Main]: UNKNOWN fields: [1(r1):<Test4: java.util.List f1>]
-[Main]: UNKNOWN fields size: 1
-[Main]: NONALIASED fields: []
-[Main]: NONALIASED fields size: 0
 [Main]: At Method <Test4: void test(java.util.List,java.util.List,java.util.List,java.util.List,java.util.List,java.util.List)>
 [Main]: ALIASED fields: [{field=[1(r7):<Test4: java.util.List f8>], local=[-3(r2)]}, {field=[1(r7):<Test4: java.util.List f13>], local=[-4(r3)]}, {field=[1(r7):<Test4: java.util.List f14>], local=[-5(r4)]}, {field=[1(r7):<Test4: java.util.List f5>, 1(r7):<Test4: java.util.List f6>], local=[-1(r0)]}, {field=[1(r7):<Test4: java.util.List f2>, 1(r7):<Test4: java.util.List f4>], local=[2(r8)]}]
 [Main]: ALIASED fields size: 7
-[Main]: EXTERNAL fields: []
-[Main]: EXTERNAL fields size: 0
-[Main]: UNKNOWN fields: [1(r7):<Test4: java.util.List f15>, 1(r7):<Test4: java.util.List f9>, 1(r7):<Test4: java.util.List f10>, 1(r7):<Test4: java.util.List f11>]
+[Main]: UNKNOWN fields: [1(r7):<Test4: java.util.List f9>, 1(r7):<Test4: java.util.List f10>, 1(r7):<Test4: java.util.List f11>, 1(r7):<Test4: java.util.List f15>]
 [Main]: UNKNOWN fields size: 4
 [Main]: NONALIASED fields: [1(r7):<Test4: java.util.List f7>, 1(r7):<Test4: java.util.List f3>, 1(r7):<Test4: java.util.List f1>, 1(r7):<Test4: java.util.List f12>, 1(r7):<Test4: java.util.List f16>]
 [Main]: NONALIASED fields size: 5
 [Base]: ALIASED: [<Test4: java.util.List f2>, <Test4: java.util.List f8>, <Test4: java.util.List f13>, <Test4: java.util.List f14>, <Test4: java.util.List f5>, <Test4: java.util.List f6>, <Test4: java.util.List f4>]
 [Base]: ALIASED size: 7
-[Base]: EXTERNAL: []
-[Base]: EXTERNAL size: 0
-[Base]: UNKNOWN: [<Test4: java.util.List f1>, <Test4: java.util.List f15>, <Test4: java.util.List f9>, <Test4: java.util.List f10>, <Test4: java.util.List f11>]
-[Base]: UNKNOWN size: 5
-[Base]: NONALIASED: [<Test4: java.util.List f7>, <Test4: java.util.List f3>, <Test4: java.util.List f12>, <Test4: java.util.List f16>]
-[Base]: NONALIASED size: 4
+[Base]: UNKNOWN: [<Test4: java.util.List f9>, <Test4: java.util.List f10>, <Test4: java.util.List f11>, <Test4: java.util.List f15>]
+[Base]: UNKNOWN size: 4
+[Base]: NONALIASED: [<Test4: java.util.List f1>, <Test4: java.util.List f7>, <Test4: java.util.List f3>, <Test4: java.util.List f12>, <Test4: java.util.List f16>]
+[Base]: NONALIASED size: 5

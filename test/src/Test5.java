@@ -7,13 +7,17 @@ public class Test5 extends HashMap {
 
    private Set _entrySet;
 
-   public List f1, f2, f3, f4;
+   public List f1, f2, f3, f4, f5;
 
    public void setEntrySet() {
       _entrySet = super.entrySet();
    }
 
    public static void main(String [] args) {
+      test(Collections.EMPTY_LIST);
+   }
+
+   public static void test(List p1) {
       Test5 t1 = new Test5();
       t1.f1 = Collections.EMPTY_LIST;
       t1.f2 = Collections.emptyList();
@@ -21,6 +25,8 @@ public class Test5 extends HashMap {
       t1.f4 = Collections.EMPTY_LIST;
       
       t1.setEntrySet();
+
+      t1.f5 = p1;
    }
 
    public static List getList1() {

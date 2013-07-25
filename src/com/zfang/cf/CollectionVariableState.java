@@ -5,12 +5,10 @@ import java.util.EnumSet;
 import java.util.List;
 
 public enum CollectionVariableState {
-   ALIASED, EXTERNAL, UNKNOWN, NONALIASED, NOINFO;
+   ALIASED_IMMUTABLE, ALIASED, EXTERNAL, UNKNOWN, DISTINCT, NOINFO;
 
    public static final List<CollectionVariableState> allStates = 
-      new ArrayList<CollectionVariableState>(EnumSet.allOf(CollectionVariableState.class)){{
-         remove(CollectionVariableState.NOINFO);
-      }};
+      new ArrayList<CollectionVariableState>(EnumSet.allOf(CollectionVariableState.class));
 
    public static CollectionVariableState getNewValue(CollectionVariableState oldVal, 
          CollectionVariableState newVal) {
