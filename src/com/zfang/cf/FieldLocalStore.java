@@ -83,16 +83,22 @@ public class FieldLocalStore implements Cloneable {
    }
 
    public void remove(InstanceKey localKey) {
-      if (!externalLocals.remove(localKey) 
-            && !unknownLocals.remove(localKey)) {
-         for (CollectionVariableState state : CollectionVariableState.allStates) {
-            List<FieldLocalMap> store = getFieldStore(state);
-            if (null == store)
-               continue;
-            for (FieldLocalMap fieldLocalMap : store) {
-               if (fieldLocalMap.getLocals().remove(localKey)) {
-                  return;
-               }
+      for (CollectionVariableState state : CollectionVariableState.allStates) {
+         List<InstanceKey> locals = getLocals(state);
+         if (null == locals)
+            continue;
+         if (locals.remove(localKey)) {
+            return;
+         }
+      }
+
+      for (CollectionVariableState state : CollectionVariableState.allStates) {
+         List<FieldLocalMap> store = getFieldStore(state);
+         if (null == store)
+            continue;
+         for (FieldLocalMap fieldLocalMap : store) {
+            if (fieldLocalMap.getLocals().remove(localKey)) {
+               return;
             }
          }
       }
