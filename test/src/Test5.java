@@ -10,7 +10,8 @@ public class Test5 extends HashMap {
    public List f1, f2, f3, f4, f5;
 
    public void setEntrySet() {
-      _entrySet = super.entrySet();
+      if (_entrySet == null)
+         _entrySet = super.entrySet();
    }
 
    public static void main(String [] args) {

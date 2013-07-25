@@ -339,6 +339,7 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
 
    protected void collectData(Stmt d, Stmt ds) {
       // print(d);
+      // print(fieldLocalStore.toStringDebug());
       // for (Value value : localMustAliasAnalysis.getLocalsAndFieldRefs()) {
       //    if (value instanceof Local)
       //       print(value + ": " + localMustAliasAnalysis.instanceKeyString((Local)value, d));

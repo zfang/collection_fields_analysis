@@ -43,6 +43,9 @@ public class FieldLocalStoreUpdateListener {
 
    public void finalize() {
       // CollectionFieldsAnalysis.print("finalize: state => " + state.name());
+      if (state == CollectionVariableState.NOINFO)
+         state = CollectionVariableState.EXTERNAL;
+
       if (obj instanceof ObjectFieldPair) {
          ObjectFieldPair field = (ObjectFieldPair)obj;
          switch (state) {

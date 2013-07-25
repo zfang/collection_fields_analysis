@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import soot.Local;
+import soot.SootField;
 import soot.jimple.toolkits.pointer.InstanceKey;
 
 public class FieldLocalMap implements Cloneable {
@@ -65,6 +66,14 @@ public class FieldLocalMap implements Cloneable {
 
    public boolean containsField(ObjectFieldPair field) {
       return fieldSet.contains(field);
+   }
+
+   public boolean containsField(SootField f) {
+      for (ObjectFieldPair field : fieldSet) {
+         if (field.getField().equals(f))
+            return true;
+      }
+      return false;
    }
 
    public boolean containsLocal(InstanceKey local) {
