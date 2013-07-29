@@ -239,7 +239,7 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
       SootMethod method = d.getInvokeExpr().getMethod();
 
       if (method.isStatic() && method.getDeclaringClass().getName().equals("java.util.Collections")) {
-         listener.onStateChange(CollectionVariableState.DISTINCT);
+         listener.onStateChange(CollectionVariableState.NONALIASED);
          listener.finalize();
          return;
       }
@@ -266,11 +266,11 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
                && method.getName().equals("clone")) {
             if (leftop instanceof FieldRef) {
                fieldLocalStore.addField(getObjectFieldPair((FieldRef)leftop, ds), 
-                     CollectionVariableState.DISTINCT);
+                     CollectionVariableState.NONALIASED);
                return true;
             }
             else if (leftop instanceof Local) {
-               fieldLocalStore.addLocal(getInstanceKey((Local)leftop, ds), CollectionVariableState.DISTINCT);
+               fieldLocalStore.addLocal(getInstanceKey((Local)leftop, ds), CollectionVariableState.NONALIASED);
                return true;
             }
                }
@@ -287,7 +287,7 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
       ObjectFieldPair objectFieldPair = getObjectFieldPair((FieldRef)leftop, ds);
       // Check if rightop is NullConstant or NewExpr
       if (isNewOrNull(rightop)) {
-         fieldLocalStore.addField(objectFieldPair, CollectionVariableState.DISTINCT);
+         fieldLocalStore.addField(objectFieldPair, CollectionVariableState.NONALIASED);
       }
       // Check if rightop is CastExpr
       else if (rightop instanceof CastExpr) {
@@ -312,7 +312,7 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
       InstanceKey leftKey = getInstanceKey((Local)leftop, ds);
       // Check if rightop is NullConstant or NewExpr
       if (isNewOrNull(rightop)) {
-         fieldLocalStore.addLocal(leftKey, CollectionVariableState.DISTINCT);
+         fieldLocalStore.addLocal(leftKey, CollectionVariableState.NONALIASED);
       }
       // Check if rightop is CastExpr
       else if (rightop instanceof CastExpr) {

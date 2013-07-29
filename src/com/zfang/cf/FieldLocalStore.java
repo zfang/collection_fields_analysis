@@ -15,7 +15,7 @@ import soot.jimple.toolkits.pointer.InstanceKey;
 
 public class FieldLocalStore implements Cloneable {
 
-   private final List<ObjectFieldPair> distinctFields = new ArrayList<ObjectFieldPair>(), 
+   private final List<ObjectFieldPair> nonaliasedFields = new ArrayList<ObjectFieldPair>(), 
           externalFields = new ArrayList<ObjectFieldPair>(),
           unknownFields = new ArrayList<ObjectFieldPair>();
 
@@ -44,8 +44,8 @@ public class FieldLocalStore implements Cloneable {
             return externalFields;
          case UNKNOWN:
             return unknownFields;
-         case DISTINCT:
-            return distinctFields;
+         case NONALIASED:
+            return nonaliasedFields;
          default:
             return null;
       }
@@ -241,7 +241,7 @@ public class FieldLocalStore implements Cloneable {
    }
 
    public void addField(ObjectFieldPair field, CollectionVariableState state) {
-      if (state == CollectionVariableState.DISTINCT) {
+      if (state == CollectionVariableState.NONALIASED) {
          remove(field);
          addToStore(field, null, state);
          return;
@@ -257,7 +257,7 @@ public class FieldLocalStore implements Cloneable {
    }
       
    public void addLocal(InstanceKey local, CollectionVariableState state) {
-      if (state == CollectionVariableState.DISTINCT) {
+      if (state == CollectionVariableState.NONALIASED) {
          remove(local);
          addToStore(local, null, state);
          return;
@@ -475,7 +475,7 @@ IterateFinalAliasedFieldStore:
             }
          case EXTERNAL:
          case UNKNOWN:
-         case DISTINCT:
+         case NONALIASED:
             fields = getFields(state);
             locals = getLocals(state);
             break;
@@ -517,7 +517,7 @@ IterateFinalAliasedFieldStore:
                break;
          case EXTERNAL:
          case UNKNOWN:
-         case DISTINCT:
+         case NONALIASED:
                {
                   List<ObjectFieldPair> fields = getFields(state);
                   if (null != fields)
@@ -573,7 +573,7 @@ IterateFinalAliasedFieldStore:
                break;
          case EXTERNAL:
          case UNKNOWN:
-         case DISTINCT:
+         case NONALIASED:
                {
                   List<ObjectFieldPair> fields = getFields(state);
                   if (null != fields)
