@@ -26,7 +26,7 @@ public class FieldLocalStore implements Cloneable {
            unknownLocals = new ArrayList<InstanceKey>();
 
    private final Set<FieldLocalMap> finalAliasedFieldStore = new LinkedHashSet<FieldLocalMap>();
-   private final Set<FieldLocalMap> aliasedImmutableFieldStore = new LinkedHashSet<FieldLocalMap>();
+   private final Set<FieldLocalMap> immutableFieldStore = new LinkedHashSet<FieldLocalMap>();
 
    public FieldLocalStore() {
       for (int i = 0, size = mayAliasedFieldStore.length; i < size; ++i) {
@@ -274,7 +274,7 @@ public class FieldLocalStore implements Cloneable {
 
    public CollectionVariableState getState(ObjectFieldPair field) {
       if (isCollectionsImmutableContainer(field.getField())) {
-         return CollectionVariableState.ALIASED_IMMUTABLE;
+         return CollectionVariableState.IMMUTABLE;
       }
 
       for (CollectionVariableState state : CollectionVariableState.allStates) {
@@ -282,7 +282,7 @@ public class FieldLocalStore implements Cloneable {
          if (null == store)
             continue;
          for (FieldLocalMap fieldLocalMap : store) {
-            if (state == CollectionVariableState.ALIASED_IMMUTABLE
+            if (state == CollectionVariableState.IMMUTABLE
                   || state == CollectionVariableState.ALIASED) {
                if (fieldLocalMap.containsField(field)) {
                   return state;
@@ -317,7 +317,7 @@ public class FieldLocalStore implements Cloneable {
          if (null == store)
             continue;
          for (FieldLocalMap fieldLocalMap : store) {
-            if (state == CollectionVariableState.ALIASED_IMMUTABLE
+            if (state == CollectionVariableState.IMMUTABLE
                   || state == CollectionVariableState.ALIASED) {
                if (fieldLocalMap.containsField(field)) {
                   finalState = CollectionVariableState.getNewValue(finalState,
@@ -355,7 +355,7 @@ public class FieldLocalStore implements Cloneable {
          if (null == store)
             continue;
          for (FieldLocalMap fieldLocalMap : store) {
-            if (state == CollectionVariableState.ALIASED_IMMUTABLE
+            if (state == CollectionVariableState.IMMUTABLE
                   || state == CollectionVariableState.ALIASED) {
                if (fieldLocalMap.containsLocal(local)) {
                   return state;
@@ -391,7 +391,7 @@ public class FieldLocalStore implements Cloneable {
          if (null == store)
             continue;
          for (FieldLocalMap fieldLocalMap : store) {
-            if (state == CollectionVariableState.ALIASED_IMMUTABLE
+            if (state == CollectionVariableState.IMMUTABLE
                   || state == CollectionVariableState.ALIASED) {
                if (fieldLocalMap.containsLocal(local)) {
                   finalState = CollectionVariableState.getNewValue(finalState,
@@ -455,11 +455,11 @@ IterateFinalAliasedFieldStore:
       List<InstanceKey> locals = null;
 
       switch (state) {
-         case ALIASED_IMMUTABLE: 
+         case IMMUTABLE: 
             {
                for (FieldLocalMap fieldLocalMap : getFieldStore(state)) {
                   if (!fieldLocalMap.getFields().isEmpty()) {
-                     aliasedImmutableFieldStore.add(fieldLocalMap);
+                     immutableFieldStore.add(fieldLocalMap);
                   }
                }
                return;
@@ -505,8 +505,8 @@ IterateFinalAliasedFieldStore:
    public void cleanup(CollectionVariableState state) {
       List<List<ObjectFieldPair>> fieldList = new ArrayList<List<ObjectFieldPair>>();
       switch (state) {
-         case ALIASED_IMMUTABLE: 
-               for (FieldLocalMap fieldLocalMap : aliasedImmutableFieldStore) {
+         case IMMUTABLE: 
+               for (FieldLocalMap fieldLocalMap : immutableFieldStore) {
                   fieldList.add(fieldLocalMap.getFields());
                }
                break;
@@ -540,11 +540,11 @@ IterateFinalAliasedFieldStore:
 
       Iterator<FieldLocalMap> iter = null;
       switch (state) {
-         case ALIASED_IMMUTABLE: 
+         case IMMUTABLE: 
             iter = finalAliasedFieldStore.iterator();
             break;
          case ALIASED: 
-            iter = aliasedImmutableFieldStore.iterator();
+            iter = immutableFieldStore.iterator();
             break;
          default:
             break;
@@ -561,8 +561,8 @@ IterateFinalAliasedFieldStore:
    public void updateFieldMap(CollectionVariableState state) {
       List<List<ObjectFieldPair>> fieldList = new ArrayList<List<ObjectFieldPair>>();
       switch (state) {
-         case ALIASED_IMMUTABLE: 
-               for (FieldLocalMap fieldLocalMap : aliasedImmutableFieldStore) {
+         case IMMUTABLE: 
+               for (FieldLocalMap fieldLocalMap : immutableFieldStore) {
                   fieldList.add(fieldLocalMap.getFields());
                }
                break;
@@ -647,7 +647,7 @@ IterateFinalAliasedFieldStore:
          }
       }
 
-      empty = empty && finalAliasedFieldStore.isEmpty() && aliasedImmutableFieldStore.isEmpty();
+      empty = empty && finalAliasedFieldStore.isEmpty() && immutableFieldStore.isEmpty();
 
       if (empty)
          return "";
@@ -655,17 +655,17 @@ IterateFinalAliasedFieldStore:
       StringBuilder builder = new StringBuilder();
 
       int aliasedImmutableFieldsCount = 0;
-      for (FieldLocalMap fieldLocalMap : aliasedImmutableFieldStore) {
+      for (FieldLocalMap fieldLocalMap : immutableFieldStore) {
          aliasedImmutableFieldsCount += fieldLocalMap.getFields().size();
       }
 
       if (aliasedImmutableFieldsCount > 0) {
          builder
-            .append(CollectionVariableState.ALIASED_IMMUTABLE.name())
+            .append(CollectionVariableState.IMMUTABLE.name())
             .append(" fields: ")
-            .append(aliasedImmutableFieldStore)
+            .append(immutableFieldStore)
             .append("\n")
-            .append(CollectionVariableState.ALIASED_IMMUTABLE.name())
+            .append(CollectionVariableState.IMMUTABLE.name())
             .append(" fields size: ")
             .append(aliasedImmutableFieldsCount)
             .append("\n");

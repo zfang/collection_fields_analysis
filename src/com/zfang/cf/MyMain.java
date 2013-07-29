@@ -71,7 +71,7 @@ class MySceneTransformer extends SceneTransformer {
             }
          }
 
-         //G.v().out.println("[CollectionFieldsAnalysis] Sorted: " + sortedMethods);
+         // CollectionFieldsAnalysis.print("Number of methods: " + sortedMethods.size());
 
          for (SootMethod m : sortedMethods) {
             if (m.hasActiveBody()) {

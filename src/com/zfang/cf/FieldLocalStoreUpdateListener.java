@@ -49,7 +49,7 @@ public class FieldLocalStoreUpdateListener {
       if (obj instanceof ObjectFieldPair) {
          ObjectFieldPair field = (ObjectFieldPair)obj;
          switch (state) {
-            case ALIASED_IMMUTABLE:
+            case IMMUTABLE:
             case ALIASED:
                store.addAliased(field, null, state);
                break;
@@ -62,7 +62,7 @@ public class FieldLocalStoreUpdateListener {
       if (obj instanceof InstanceKey) {
          InstanceKey local = (InstanceKey)obj;
          switch (state) {
-            case ALIASED_IMMUTABLE:
+            case IMMUTABLE:
             case ALIASED:
                store.addAliased(null, local, state);
                break;
