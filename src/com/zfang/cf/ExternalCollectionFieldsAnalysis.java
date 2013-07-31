@@ -39,8 +39,13 @@ public class ExternalCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
 
          Value op = ((ReturnStmt)d).getOp();
 
-         if (isNewOrNull(op)) {
+         if (isNew(op)) {
             listener.onStateChange(CollectionVariableState.NONALIASED);
+            return;
+         }
+
+         if (isNull(op)) {
+            listener.onStateChange(CollectionVariableState.NULL);
             return;
          }
 

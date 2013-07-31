@@ -16,6 +16,7 @@ import soot.jimple.toolkits.pointer.InstanceKey;
 public class FieldLocalStore implements Cloneable {
 
    private final List<ObjectFieldPair> nonaliasedFields = new ArrayList<ObjectFieldPair>(), 
+          nullFields = new ArrayList<ObjectFieldPair>(),
           externalFields = new ArrayList<ObjectFieldPair>(),
           unknownFields = new ArrayList<ObjectFieldPair>();
 
@@ -44,6 +45,8 @@ public class FieldLocalStore implements Cloneable {
             return externalFields;
          case UNKNOWN:
             return unknownFields;
+         case NULL:
+            return nullFields;
          case NONALIASED:
             return nonaliasedFields;
          default:
@@ -426,21 +429,6 @@ public class FieldLocalStore implements Cloneable {
          populateFinalAliasedFieldStore(state);
       }
 
-      /*
-      Iterator<FieldLocalMap> iter = finalAliasedFieldStore.iterator();
-IterateFinalAliasedFieldStore:
-      while (iter.hasNext()) {
-         FieldLocalMap fieldLocalMap = iter.next();
-         for (ObjectFieldPair field : fieldLocalMap.getFields()) {
-            if (isCollectionsImmutableContainer(field.getField())) {
-               aliasedImmutableFieldStore.add(fieldLocalMap);
-               iter.remove();
-               continue IterateFinalAliasedFieldStore;
-            }
-         }
-      }
-      */
-
       for (CollectionVariableState state : CollectionVariableState.allStates) {
          cleanup(state);
       }
@@ -475,6 +463,7 @@ IterateFinalAliasedFieldStore:
             }
          case EXTERNAL:
          case UNKNOWN:
+         case NULL:
          case NONALIASED:
             fields = getFields(state);
             locals = getLocals(state);
@@ -490,14 +479,14 @@ IterateFinalAliasedFieldStore:
          return;
       for (FieldLocalMap fieldLocalMap : store) {
          List<ObjectFieldPair> fieldSet = fieldLocalMap.getFields();
-         if (fieldSet.size() > 1) {
-            finalAliasedFieldStore.add(fieldLocalMap);
-         }
-         else if (fieldSet.size() == 1) {
+         if (fieldSet.size() == 1 || state == CollectionVariableState.NULL) {
             if (fields != null)
                fields.addAll(fieldSet);
             if (locals != null)
                locals.addAll(fieldLocalMap.getLocals());
+         }
+         else if (fieldSet.size() > 1) {
+            finalAliasedFieldStore.add(fieldLocalMap);
          }
       }
    }
@@ -517,6 +506,7 @@ IterateFinalAliasedFieldStore:
                break;
          case EXTERNAL:
          case UNKNOWN:
+         case NULL:
          case NONALIASED:
                {
                   List<ObjectFieldPair> fields = getFields(state);
@@ -573,6 +563,7 @@ IterateFinalAliasedFieldStore:
                break;
          case EXTERNAL:
          case UNKNOWN:
+         case NULL:
          case NONALIASED:
                {
                   List<ObjectFieldPair> fields = getFields(state);

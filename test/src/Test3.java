@@ -14,10 +14,11 @@ public class Test3 {
       t1.f2 = l3; 
       t1.f2 = (List)new LinkedList(); 
       t1.f3 = l4;
-      t1.f3 = t1.getList();
       t1.f4 = null;
       t1.f4 = t1.f2;
+      t1.f4 = t1.f3;
       t1.f5 = t1.f2;
+      t1.f5 = t1.getList();
       t1.f5 = l3;
    }
    public List getList() {

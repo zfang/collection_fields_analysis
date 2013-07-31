@@ -1,7 +1,5 @@
 #!/bin/bash
-for i in {1..5}
-do
-   set -x
-   PROJECT=../test/ ./run.sh --main-class Test${i} > ../test/sootOutput/Test${i}.output
-   set +x
-done
+dirname=$(dirname $0)
+
+set -x
+PROJECT=$dirname/../test/ $dirname/run.sh --main-class Test${1} > $dirname/../test/sootOutput/Test${1}.output

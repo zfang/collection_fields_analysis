@@ -18,7 +18,7 @@ count_fields() {
    printf "$msg_format" "$1" $( bc -l <<< "$COUNT / $Methods" )
 }
 
-for i in ALIASED_IMMUTABLE ALIASED EXTERNAL UNKNOWN DISTINCT
+for i in ALIASED_IMMUTABLE ALIASED EXTERNAL UNKNOWN NULL NONALIASED
 do
    count_fields $i
 done

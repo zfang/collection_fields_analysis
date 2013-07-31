@@ -133,10 +133,13 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
          && CollectionsStaticImmutableFieldNames.contains(field.getName());
    }
 
-   public static boolean isNewOrNull(Value op) {
+   public static boolean isNew(Value op) {
+      return op instanceof soot.jimple.NewExpr;
+   }
+
+   public static boolean isNull(Value op) {
       return (op instanceof soot.jimple.NullConstant 
-            || op.getType() instanceof soot.NullType
-            || op instanceof soot.jimple.NewExpr);
+            || op.getType() instanceof soot.NullType);
    }
 
    public ObjectFieldPair getObjectFieldPair(FieldRef fieldRef, Stmt ds) {
@@ -285,9 +288,13 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
 
    protected void processFieldRef(Value leftop, Value rightop, Stmt d, Stmt ds) {
       ObjectFieldPair objectFieldPair = getObjectFieldPair((FieldRef)leftop, ds);
-      // Check if rightop is NullConstant or NewExpr
-      if (isNewOrNull(rightop)) {
+      // Check if rightop is NewExpr
+      if (isNew(rightop)) {
          fieldLocalStore.addField(objectFieldPair, CollectionVariableState.NONALIASED);
+      }
+      // Check if rightop is Null
+      else if (isNull(rightop)) {
+         fieldLocalStore.addField(objectFieldPair, CollectionVariableState.NULL);
       }
       // Check if rightop is CastExpr
       else if (rightop instanceof CastExpr) {
@@ -310,9 +317,13 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
 
    protected void processLocal(Value leftop, Value rightop, Stmt d, Stmt ds) {
       InstanceKey leftKey = getInstanceKey((Local)leftop, ds);
-      // Check if rightop is NullConstant or NewExpr
-      if (isNewOrNull(rightop)) {
+      // Check if rightop is NewExpr
+      if (isNew(rightop)) {
          fieldLocalStore.addLocal(leftKey, CollectionVariableState.NONALIASED);
+      }
+      // Check if rightop is Null
+      else if (isNull(rightop)) {
+         fieldLocalStore.addLocal(leftKey, CollectionVariableState.NULL);
       }
       // Check if rightop is CastExpr
       else if (rightop instanceof CastExpr) {
@@ -366,7 +377,6 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
          else if (leftop instanceof Local) {
             processLocal(leftop, rightop, d, ds);
          }
-         // print(fieldLocalStore.toStringDebug());
       }
 
    }
