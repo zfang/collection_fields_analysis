@@ -1,9 +1,9 @@
 [Main]: At Method <Test3: void main(java.lang.String[])>
-[Main]: NULL fields: [1(r2):<Test3: java.util.List f5>, 1(r2):<Test3: java.util.List f3>, 1(r2):<Test3: java.util.List f4>]
+[Main]: NULL fields: [1(r2):<Test3: java.util.List f3>, 1(r2):<Test3: java.util.List f4>, 1(r2):<Test3: java.util.List f5>]
 [Main]: NULL fields size: 3
 [Main]: NONALIASED fields: [1(r2):<Test3: java.util.List f1>, 1(r2):<Test3: java.util.List f2>]
 [Main]: NONALIASED fields size: 2
-[Base]: NULL: [<Test3: java.util.List f5>, <Test3: java.util.List f3>, <Test3: java.util.List f4>]
+[Base]: NULL: [<Test3: java.util.List f3>, <Test3: java.util.List f4>, <Test3: java.util.List f5>]
 [Base]: NULL size: 3
 [Base]: NONALIASED: [<Test3: java.util.List f1>, <Test3: java.util.List f2>]
 [Base]: NONALIASED size: 2

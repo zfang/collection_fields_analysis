@@ -18,6 +18,10 @@ public enum CollectionVariableState {
          return newVal;
       if (null == newVal)
          return oldVal;
+      if ((oldVal == NULL && newVal == NONALIASED)
+            || (newVal == NULL && oldVal == NONALIASED))
+         return newVal;
+
       return oldVal.ordinal() <= newVal.ordinal() ? oldVal : newVal;
    }
 

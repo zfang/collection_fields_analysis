@@ -81,15 +81,15 @@ public class MainCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
 SearchThroughFieldLocalStore:
             for (CollectionVariableState state : CollectionVariableState.allStates) {
                for (FieldLocalMap fieldLocalMap : fieldLocalStore.getFieldStore(state)) {
-                  if (fieldLocalMap.containsField(field)) {
+                  if (fieldLocalMap.contains(field)) {
                      for (ObjectFieldPair visitedField : visitedFields) {
-                        if (fieldLocalMap.containsField(visitedField)) {
+                        if (fieldLocalMap.contains(visitedField)) {
                            newStates[i] = CollectionVariableState.ALIASED;
                            break SearchThroughFieldLocalStore;
                         }
                      }
                      for (InstanceKey visitedLocal : visitedLocals) {
-                        if (fieldLocalMap.containsLocal(visitedLocal)) {
+                        if (fieldLocalMap.contains(visitedLocal)) {
                            newStates[i] = CollectionVariableState.ALIASED;
                            break SearchThroughFieldLocalStore;
                         }
@@ -120,15 +120,15 @@ SearchThroughFieldLocalStore:
 SearchThroughFieldLocalStore:
             for (CollectionVariableState state : CollectionVariableState.allStates) {
                for (FieldLocalMap fieldLocalMap : fieldLocalStore.getFieldStore(state)) {
-                  if (fieldLocalMap.containsLocal(local)) {
+                  if (fieldLocalMap.contains(local)) {
                      for (ObjectFieldPair visitedField : visitedFields) {
-                        if (fieldLocalMap.containsField(visitedField)) {
+                        if (fieldLocalMap.contains(visitedField)) {
                            newStates[i] = CollectionVariableState.ALIASED;
                            break SearchThroughFieldLocalStore;
                         }
                      }
                      for (InstanceKey visitedLocal : visitedLocals) {
-                        if (fieldLocalMap.containsLocal(visitedLocal)) {
+                        if (fieldLocalMap.contains(visitedLocal)) {
                            newStates[i] = CollectionVariableState.ALIASED;
                            break SearchThroughFieldLocalStore;
                         }

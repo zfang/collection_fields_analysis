@@ -40,9 +40,9 @@ public class FieldLocalMap implements Cloneable {
    public FieldLocalMap clone() {
       FieldLocalMap clone = new FieldLocalMap();
       for (InstanceKey local : localSet)
-         clone.addToLocals(local);
+         clone.add(local);
       for (ObjectFieldPair field : fieldSet)
-         clone.addToFields(field);
+         clone.add(field);
       return clone;
    }
 
@@ -54,21 +54,21 @@ public class FieldLocalMap implements Cloneable {
       return fieldSet;
    }
 
-   public void addToLocals(InstanceKey local) {
+   public void add(InstanceKey local) {
       if (null != local)
          localSet.add(local);
    }
    
-   public void addToFields(ObjectFieldPair field) {
+   public void add(ObjectFieldPair field) {
       if (null != field)
          fieldSet.add(field);
    }
 
-   public boolean containsField(ObjectFieldPair field) {
+   public boolean contains(ObjectFieldPair field) {
       return fieldSet.contains(field);
    }
 
-   public boolean containsField(SootField f) {
+   public boolean contains(SootField f) {
       for (ObjectFieldPair field : fieldSet) {
          if (field.getField().equals(f))
             return true;
@@ -76,11 +76,11 @@ public class FieldLocalMap implements Cloneable {
       return false;
    }
 
-   public boolean containsLocal(InstanceKey local) {
+   public boolean contains(InstanceKey local) {
       return localSet.contains(local);
    }
 
-   public boolean containsLocal(Local l) {
+   public boolean contains(Local l) {
       for (InstanceKey local : localSet) {
          if (local.getLocal().equals(l))
             return true;
@@ -88,6 +88,13 @@ public class FieldLocalMap implements Cloneable {
       return false;
    }
 
+   public boolean remove(ObjectFieldPair field) {
+      return fieldSet.remove(field);
+   }
+
+   public boolean remove(InstanceKey local) {
+      return localSet.remove(local);
+   }
 
    public String toString() {
       return new StringBuilder()
