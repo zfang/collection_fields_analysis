@@ -2,13 +2,9 @@ package com.zfang.cf;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
 
 public enum CollectionVariableState {
    IMMUTABLE, ALIASED, EXTERNAL, UNKNOWN, NULL, NONALIASED, NOINFO;
-
-   public static final List<CollectionVariableState> allStates = 
-      new ArrayList<CollectionVariableState>(EnumSet.allOf(CollectionVariableState.class));
 
    public static CollectionVariableState getNewValue(CollectionVariableState oldVal, 
          CollectionVariableState newVal) {
@@ -26,6 +22,7 @@ public enum CollectionVariableState {
    }
 
    public static CollectionVariableState lastValue() {
-      return allStates.get(allStates.size()-1);
+      return CollectionVariableState.values()[CollectionVariableState.values().length-1];
    }
+
 }

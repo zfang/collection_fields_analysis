@@ -176,7 +176,7 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
 
    public static Map<CollectionVariableState, Set<SootField>> getReverseFieldMap() {
       Map<CollectionVariableState, Set<SootField>> reverseFieldMap = new LinkedHashMap<CollectionVariableState, Set<SootField>>();
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          if (state == CollectionVariableState.NOINFO)
             continue;
 

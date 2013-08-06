@@ -96,6 +96,10 @@ public class FieldLocalMap implements Cloneable {
       return localSet.remove(local);
    }
 
+   public boolean isEmpty() {
+      return fieldSet.isEmpty() && localSet.isEmpty();
+   }
+
    public String toString() {
       return new StringBuilder()
          .append("{")

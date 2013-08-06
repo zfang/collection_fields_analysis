@@ -15,19 +15,19 @@ import soot.jimple.toolkits.pointer.InstanceKey;
 
 public class FieldLocalStore implements Cloneable {
 
-   private final List<ObjectFieldPair> nonaliasedFields = new ArrayList<ObjectFieldPair>(), 
-          nullFields = new ArrayList<ObjectFieldPair>(),
-          externalFields = new ArrayList<ObjectFieldPair>(),
-          unknownFields = new ArrayList<ObjectFieldPair>();
+   private final List<ObjectFieldPair> immutableFields = new ArrayList<ObjectFieldPair>(),
+           externalFields = new ArrayList<ObjectFieldPair>(),
+           unknownFields = new ArrayList<ObjectFieldPair>(),
+           nullFields = new ArrayList<ObjectFieldPair>(),
+           nonaliasedFields = new ArrayList<ObjectFieldPair>(); 
 
    private final List<FieldLocalMap> [] mayAliasedFieldStore = 
-      (List<FieldLocalMap>[]) new List[CollectionVariableState.allStates.size()];
+      (List<FieldLocalMap>[]) new List[CollectionVariableState.values().length];
 
    private final List<InstanceKey> externalLocals = new ArrayList<InstanceKey>(),
            unknownLocals = new ArrayList<InstanceKey>();
 
-   private final Set<FieldLocalMap> finalAliasedFieldStore = new LinkedHashSet<FieldLocalMap>();
-   private final Set<FieldLocalMap> immutableFieldStore = new LinkedHashSet<FieldLocalMap>();
+   private final Set<FieldLocalMap> aliasedFieldStore = new LinkedHashSet<FieldLocalMap>();
 
    public FieldLocalStore() {
       for (int i = 0, size = mayAliasedFieldStore.length; i < size; ++i) {
@@ -41,6 +41,8 @@ public class FieldLocalStore implements Cloneable {
 
    public List<ObjectFieldPair> getFields(CollectionVariableState state) {
       switch (state) {
+         case IMMUTABLE:
+            return immutableFields;
          case EXTERNAL:
             return externalFields;
          case UNKNOWN:
@@ -66,7 +68,7 @@ public class FieldLocalStore implements Cloneable {
    }
 
    public boolean remove(ObjectFieldPair objectFieldPair) {
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<ObjectFieldPair> fields = getFields(state);
          if (null == fields)
             continue;
@@ -74,13 +76,16 @@ public class FieldLocalStore implements Cloneable {
             return true;
          }
       }
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<FieldLocalMap> store = getFieldStore(state);
          if (null == store)
             continue;
          Iterator<FieldLocalMap> iter = store.iterator();
          while (iter.hasNext()) {
-            if (iter.next().remove(objectFieldPair)) {
+            FieldLocalMap fieldLocalMap = iter.next();
+            if (fieldLocalMap.remove(objectFieldPair)) {
+               if (fieldLocalMap.isEmpty())
+                  iter.remove();
                return true;
             }
          }
@@ -90,7 +95,7 @@ public class FieldLocalStore implements Cloneable {
    }
 
    public boolean remove(InstanceKey localKey) {
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<InstanceKey> locals = getLocals(state);
          if (null == locals)
             continue;
@@ -99,13 +104,16 @@ public class FieldLocalStore implements Cloneable {
          }
       }
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<FieldLocalMap> store = getFieldStore(state);
          if (null == store)
             continue;
          Iterator<FieldLocalMap> iter = store.iterator();
          while (iter.hasNext()) {
-            if (iter.next().remove(localKey)) {
+            FieldLocalMap fieldLocalMap = iter.next();
+            if (fieldLocalMap.remove(localKey)) {
+               if (fieldLocalMap.isEmpty())
+                  iter.remove();
                return true;
             }
          }
@@ -146,7 +154,7 @@ public class FieldLocalStore implements Cloneable {
 
       remove(objectFieldPair);
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<FieldLocalMap> store = getFieldStore(state);
          if (null == store)
             continue;
@@ -175,7 +183,7 @@ public class FieldLocalStore implements Cloneable {
          return;
       }
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<FieldLocalMap> store = getFieldStore(state);
          if (null == store)
             continue;
@@ -200,7 +208,13 @@ public class FieldLocalStore implements Cloneable {
          return;
       }
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      if (isCollectionsImmutableContainer(objectFieldPair.getField())) {
+         addLocal(leftKey, CollectionVariableState.IMMUTABLE);
+         return;
+      }
+
+
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<FieldLocalMap> store = getFieldStore(state);
          if (null == store)
             continue;
@@ -256,30 +270,26 @@ public class FieldLocalStore implements Cloneable {
    }
 
    public CollectionVariableState getState(ObjectFieldPair field) {
-      if (isCollectionsImmutableContainer(field.getField())) {
-         return CollectionVariableState.IMMUTABLE;
-      }
-
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<FieldLocalMap> store = getFieldStore(state);
          if (null == store)
             continue;
          for (FieldLocalMap fieldLocalMap : store) {
-            if (state == CollectionVariableState.IMMUTABLE
-                  || state == CollectionVariableState.ALIASED) {
-               if (fieldLocalMap.contains(field)) {
-                  return state;
-               }
+            if (!fieldLocalMap.contains(field)) {
+               continue;
+            }
+            if (state == CollectionVariableState.ALIASED
+                  || state == CollectionVariableState.IMMUTABLE
+                  || state == CollectionVariableState.NULL) {
+               return state;
             }
             else {
-               if (fieldLocalMap.contains(field)) {
-                  return fieldLocalMap.getFields().size() <= 1 ? state: CollectionVariableState.ALIASED;
-               }
+               return fieldLocalMap.getFields().size() <= 1 ? state: CollectionVariableState.ALIASED;
             }
          }
       }
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<ObjectFieldPair> fields = getFields(state);
          if (null == fields)
             continue;
@@ -295,28 +305,28 @@ public class FieldLocalStore implements Cloneable {
    public CollectionVariableState getState(SootField field) {
       CollectionVariableState finalState = CollectionVariableState.lastValue();
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<FieldLocalMap> store = getFieldStore(state);
          if (null == store)
             continue;
          for (FieldLocalMap fieldLocalMap : store) {
-            if (state == CollectionVariableState.IMMUTABLE
-                  || state == CollectionVariableState.ALIASED) {
-               if (fieldLocalMap.contains(field)) {
-                  finalState = CollectionVariableState.getNewValue(finalState,
-                        state);
-               }
+            if (!fieldLocalMap.contains(field)) {
+               continue;
+            }
+            if (state == CollectionVariableState.ALIASED
+                  || state == CollectionVariableState.IMMUTABLE
+                  || state == CollectionVariableState.NULL) {
+               finalState = CollectionVariableState.getNewValue(finalState,
+                     state);
             }
             else {
-               if (fieldLocalMap.contains(field)) {
-                  finalState = CollectionVariableState.getNewValue(finalState,
-                        fieldLocalMap.getFields().size() <= 1 ? state: CollectionVariableState.ALIASED);
-               }
+               finalState = CollectionVariableState.getNewValue(finalState,
+                     fieldLocalMap.getFields().size() <= 1 ? state: CollectionVariableState.ALIASED);
             }
          }
       }
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<ObjectFieldPair> fields = getFields(state);
          if (null == fields)
             continue;
@@ -333,30 +343,29 @@ public class FieldLocalStore implements Cloneable {
       // CollectionFieldsAnalysis.print("getState: local => " + local);
       // CollectionFieldsAnalysis.print(toStringDebug());
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<FieldLocalMap> store = getFieldStore(state);
          if (null == store)
             continue;
          for (FieldLocalMap fieldLocalMap : store) {
-            if (state == CollectionVariableState.IMMUTABLE
-                  || state == CollectionVariableState.ALIASED) {
-               if (fieldLocalMap.contains(local)) {
-                  return state;
-               }
+            if (!fieldLocalMap.contains(local)) {
+               continue;
+            }
+            if (state == CollectionVariableState.ALIASED
+                  || state == CollectionVariableState.IMMUTABLE
+                  || state == CollectionVariableState.NULL) {
+               return state;
             }
             else {
-               if (fieldLocalMap.contains(local)) {
-                  return fieldLocalMap.getFields().size() <= 1 ? state: CollectionVariableState.ALIASED;
-               }
+               return fieldLocalMap.getFields().size() <= 1 ? state: CollectionVariableState.ALIASED;
             }
          }
       }
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<InstanceKey> locals = getLocals(state);
          if (null == locals)
             continue;
-
          if (locals.contains(local)) {
             return state;
          }
@@ -369,32 +378,31 @@ public class FieldLocalStore implements Cloneable {
    public CollectionVariableState getState(Local local) {
       CollectionVariableState finalState = CollectionVariableState.lastValue();
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<FieldLocalMap> store = getFieldStore(state);
          if (null == store)
             continue;
          for (FieldLocalMap fieldLocalMap : store) {
-            if (state == CollectionVariableState.IMMUTABLE
-                  || state == CollectionVariableState.ALIASED) {
-               if (fieldLocalMap.contains(local)) {
-                  finalState = CollectionVariableState.getNewValue(finalState,
-                        state);
-               }
+            if (!fieldLocalMap.contains(local)) {
+               continue;
+            }
+            if (state == CollectionVariableState.ALIASED
+                  || state == CollectionVariableState.IMMUTABLE
+                  || state == CollectionVariableState.NULL) {
+               finalState = CollectionVariableState.getNewValue(finalState,
+                     state);
             }
             else {
-               if (fieldLocalMap.contains(local)) {
-                  finalState = CollectionVariableState.getNewValue(finalState,
-                        fieldLocalMap.getFields().size() <= 1 ? state: CollectionVariableState.ALIASED);
-               }
+               finalState = CollectionVariableState.getNewValue(finalState,
+                     fieldLocalMap.getFields().size() <= 1 ? state: CollectionVariableState.ALIASED);
             }
          }
       }
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<InstanceKey> locals = getLocals(state);
          if (null == locals)
             continue;
-
          for (InstanceKey l : locals) {
             if (l.getLocal().equals(local))
                finalState = CollectionVariableState.getNewValue(finalState, state);
@@ -405,15 +413,15 @@ public class FieldLocalStore implements Cloneable {
    }
 
    public void finalize() {
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          populateFinalAliasedFieldStore(state);
       }
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          cleanup(state);
       }
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          updateFieldMap(state);
       }
    }
@@ -423,35 +431,19 @@ public class FieldLocalStore implements Cloneable {
       List<InstanceKey> locals = null;
 
       switch (state) {
-         case IMMUTABLE: 
-            {
-               for (FieldLocalMap fieldLocalMap : getFieldStore(state)) {
-                  if (!fieldLocalMap.getFields().isEmpty()) {
-                     immutableFieldStore.add(fieldLocalMap);
-                  }
-               }
-               return;
-            }
          case ALIASED: 
             {
                for (FieldLocalMap fieldLocalMap : getFieldStore(state)) {
                   if (!fieldLocalMap.getFields().isEmpty()) {
-                     finalAliasedFieldStore.add(fieldLocalMap);
+                     aliasedFieldStore.add(fieldLocalMap);
                   }
                }
                return;
             }
-         case EXTERNAL:
-         case UNKNOWN:
-         case NULL:
-         case NONALIASED:
+         default:
             fields = getFields(state);
             locals = getLocals(state);
             break;
-         case NOINFO:
-            break;
-         default:
-            return;
       }
 
       List<FieldLocalMap> store = getFieldStore(state);
@@ -469,7 +461,7 @@ public class FieldLocalStore implements Cloneable {
                locals.addAll(fieldLocalMap.getLocals());
          }
          else if (fieldSet.size() > 1) {
-            finalAliasedFieldStore.add(fieldLocalMap);
+            aliasedFieldStore.add(fieldLocalMap);
          }
       }
    }
@@ -477,28 +469,18 @@ public class FieldLocalStore implements Cloneable {
    public void cleanup(CollectionVariableState state) {
       List<List<ObjectFieldPair>> fieldList = new ArrayList<List<ObjectFieldPair>>();
       switch (state) {
-         case IMMUTABLE: 
-               for (FieldLocalMap fieldLocalMap : immutableFieldStore) {
-                  fieldList.add(fieldLocalMap.getFields());
-               }
-               break;
          case ALIASED: 
-               for (FieldLocalMap fieldLocalMap : finalAliasedFieldStore) {
+               for (FieldLocalMap fieldLocalMap : aliasedFieldStore) {
                   fieldList.add(fieldLocalMap.getFields());
                }
                break;
-         case EXTERNAL:
-         case UNKNOWN:
-         case NULL:
-         case NONALIASED:
+         default:
                {
                   List<ObjectFieldPair> fields = getFields(state);
                   if (null != fields)
                      fieldList.add(fields);
                   break;
                }
-         default:
-            return;
       }
 
       for (List<ObjectFieldPair> fields : fieldList) {
@@ -513,11 +495,8 @@ public class FieldLocalStore implements Cloneable {
 
       Iterator<FieldLocalMap> iter = null;
       switch (state) {
-         case IMMUTABLE: 
-            iter = finalAliasedFieldStore.iterator();
-            break;
          case ALIASED: 
-            iter = immutableFieldStore.iterator();
+            iter = aliasedFieldStore.iterator();
             break;
          default:
             break;
@@ -534,28 +513,18 @@ public class FieldLocalStore implements Cloneable {
    public void updateFieldMap(CollectionVariableState state) {
       List<List<ObjectFieldPair>> fieldList = new ArrayList<List<ObjectFieldPair>>();
       switch (state) {
-         case IMMUTABLE: 
-               for (FieldLocalMap fieldLocalMap : immutableFieldStore) {
-                  fieldList.add(fieldLocalMap.getFields());
-               }
-               break;
          case ALIASED: 
-               for (FieldLocalMap fieldLocalMap : finalAliasedFieldStore) {
+               for (FieldLocalMap fieldLocalMap : aliasedFieldStore) {
                   fieldList.add(fieldLocalMap.getFields());
                }
                break;
-         case EXTERNAL:
-         case UNKNOWN:
-         case NULL:
-         case NONALIASED:
+         default:
                {
                   List<ObjectFieldPair> fields = getFields(state);
                   if (null != fields)
                      fieldList.add(fields);
                   break;
                }
-         default:
-            return;
       }
 
       for (List<ObjectFieldPair> fields : fieldList) {
@@ -566,14 +535,19 @@ public class FieldLocalStore implements Cloneable {
          }
       }
    }
-      
+
    public String toStringDebug() {
       StringBuilder builder =  new StringBuilder();
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<FieldLocalMap> store = getFieldStore(state);
+
          if (null == store)
             continue;
+
+         if (store.isEmpty())
+            continue;
+
          builder
             .append(state.name())
             .append(" store: ")
@@ -581,9 +555,12 @@ public class FieldLocalStore implements Cloneable {
             .append("\n");
       }
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<ObjectFieldPair> fields = getFields(state);
          if (null == fields)
+            continue;
+
+         if (fields.isEmpty())
             continue;
 
          builder
@@ -593,9 +570,12 @@ public class FieldLocalStore implements Cloneable {
             .append("\n");
       }
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<InstanceKey> locals = getLocals(state);
          if (null == locals)
+            continue;
+
+         if (locals.isEmpty())
             continue;
 
          builder
@@ -610,7 +590,7 @@ public class FieldLocalStore implements Cloneable {
 
    public String toString() {
       boolean empty = true;
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<ObjectFieldPair> fields = getFields(state);
          if (null == fields)
             continue;
@@ -621,48 +601,31 @@ public class FieldLocalStore implements Cloneable {
          }
       }
 
-      empty = empty && finalAliasedFieldStore.isEmpty() && immutableFieldStore.isEmpty();
+      empty = empty && aliasedFieldStore.isEmpty();
 
       if (empty)
          return "";
 
       StringBuilder builder = new StringBuilder();
 
-      int aliasedImmutableFieldsCount = 0;
-      for (FieldLocalMap fieldLocalMap : immutableFieldStore) {
-         aliasedImmutableFieldsCount += fieldLocalMap.getFields().size();
-      }
-
-      if (aliasedImmutableFieldsCount > 0) {
-         builder
-            .append(CollectionVariableState.IMMUTABLE.name())
-            .append(" fields: ")
-            .append(immutableFieldStore)
-            .append("\n")
-            .append(CollectionVariableState.IMMUTABLE.name())
-            .append(" fields size: ")
-            .append(aliasedImmutableFieldsCount)
-            .append("\n");
-      }
-
       int finalAliasedFieldsCount = 0;
-      for (FieldLocalMap fieldLocalMap : finalAliasedFieldStore) {
+      for (FieldLocalMap fieldLocalMap : aliasedFieldStore) {
          finalAliasedFieldsCount += fieldLocalMap.getFields().size();
       }
 
       if (finalAliasedFieldsCount > 0) {
-      builder
-         .append(CollectionVariableState.ALIASED.name())
-         .append(" fields: ")
-         .append(finalAliasedFieldStore)
-         .append("\n")
-         .append(CollectionVariableState.ALIASED.name())
-         .append(" fields size: ")
-         .append(finalAliasedFieldsCount)
-         .append("\n");
+         builder
+            .append(CollectionVariableState.ALIASED.name())
+            .append(" fields: ")
+            .append(aliasedFieldStore)
+            .append("\n")
+            .append(CollectionVariableState.ALIASED.name())
+            .append(" fields size: ")
+            .append(finalAliasedFieldsCount)
+            .append("\n");
       }
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<ObjectFieldPair> fields = getFields(state);
          if (null == fields)
             continue;
@@ -687,7 +650,7 @@ public class FieldLocalStore implements Cloneable {
    public FieldLocalStore clone() {
       FieldLocalStore storeClone = new FieldLocalStore();
 
-      for (CollectionVariableState state : CollectionVariableState.allStates) {
+      for (CollectionVariableState state : CollectionVariableState.values()) {
          List<FieldLocalMap> store = getFieldStore(state);
          if (null == store)
             continue;

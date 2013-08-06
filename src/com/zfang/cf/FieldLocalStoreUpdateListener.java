@@ -47,29 +47,11 @@ public class FieldLocalStoreUpdateListener {
          state = CollectionVariableState.EXTERNAL;
 
       if (obj instanceof ObjectFieldPair) {
-         ObjectFieldPair field = (ObjectFieldPair)obj;
-         switch (state) {
-            case IMMUTABLE:
-            case ALIASED:
-               store.addAliased(field, null, state);
-               break;
-            default:
-               store.addField(field, state);
-               break;
-         }
+         store.addField((ObjectFieldPair)obj, state);
          return;
       }
       if (obj instanceof InstanceKey) {
-         InstanceKey local = (InstanceKey)obj;
-         switch (state) {
-            case IMMUTABLE:
-            case ALIASED:
-               store.addAliased(null, local, state);
-               break;
-            default:
-               store.addLocal(local, state);
-               break;
-         }
+         store.addLocal((InstanceKey)obj, state);
          return;
       }
    }

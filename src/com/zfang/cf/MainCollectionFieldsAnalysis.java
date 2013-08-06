@@ -79,7 +79,7 @@ public class MainCollectionFieldsAnalysis extends CollectionFieldsAnalysis {
             }
 
 SearchThroughFieldLocalStore:
-            for (CollectionVariableState state : CollectionVariableState.allStates) {
+            for (CollectionVariableState state : CollectionVariableState.values()) {
                for (FieldLocalMap fieldLocalMap : fieldLocalStore.getFieldStore(state)) {
                   if (fieldLocalMap.contains(field)) {
                      for (ObjectFieldPair visitedField : visitedFields) {
@@ -118,7 +118,7 @@ SearchThroughFieldLocalStore:
             }
 
 SearchThroughFieldLocalStore:
-            for (CollectionVariableState state : CollectionVariableState.allStates) {
+            for (CollectionVariableState state : CollectionVariableState.values()) {
                for (FieldLocalMap fieldLocalMap : fieldLocalStore.getFieldStore(state)) {
                   if (fieldLocalMap.contains(local)) {
                      for (ObjectFieldPair visitedField : visitedFields) {
