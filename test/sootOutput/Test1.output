@@ -1,9 +1,13 @@
-[Main]: At Method <Test1: void main(java.lang.String[])>
-[Main]: NULL fields: [1(r2):<Test1: java.util.List f2>, 1(r2):<Test1: java.util.List f4>, 1(r2):<Test1: java.util.List f6>]
-[Main]: NULL fields size: 3
-[Main]: NONALIASED fields: [1(r2):<Test1: java.util.List f1>, 1(r2):<Test1: java.util.List f3>, 1(r2):<Test1: java.util.List f5>]
-[Main]: NONALIASED fields size: 3
-[Base]: NULL: [<Test1: java.util.List f2>, <Test1: java.util.List f4>, <Test1: java.util.List f6>]
-[Base]: NULL size: 3
-[Base]: NONALIASED: [<Test1: java.util.List f1>, <Test1: java.util.List f3>, <Test1: java.util.List f5>]
-[Base]: NONALIASED size: 3
+[MainCollectionFields]: At Method <Test1: void main(java.lang.String[])>
+[MainCollectionFields]: NULL fields: [1(r2):<Test1: java.util.List f2>, 1(r2):<Test1: java.util.List f4>, 1(r2):<Test1: java.util.List f6>]
+[MainCollectionFields]: NULL fields size: 3
+[MainCollectionFields]: NONALIASED fields: [1(r2):<Test1: java.util.List f1>, 1(r2):<Test1: java.util.List f3>, 1(r2):<Test1: java.util.List f5>]
+[MainCollectionFields]: NONALIASED fields size: 3
+[CollectionFields]: NULL: [<Test1: java.util.List f2>, <Test1: java.util.List f4>, <Test1: java.util.List f6>]
+[CollectionFields]: NULL size: 3
+[CollectionFields]: NONALIASED: [<Test1: java.util.List f1>, <Test1: java.util.List f3>, <Test1: java.util.List f5>]
+[CollectionFields]: NONALIASED size: 3
+[Disjointness]: At Method <Test1: void main(java.lang.String[])>
+[Disjointness]: The normaliztion pairs are { (9($r13), 8($r12)) }
+[Disjointness]: The output for our collection is{ (9($r13), 8($r12)), (10($r14), 7(r6)), (9($r13), 6(r5)), (8($r12), 6(r5)) }
+[Disjointness]: The external collections are[]

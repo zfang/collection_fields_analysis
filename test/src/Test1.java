@@ -15,6 +15,12 @@ public class Test1 {
       t1.f4 = l4;
       t1.f5 = t1.getList();
       t1.f6 = null;
+
+      Object o1 = new Object();
+      Object o2 = new Object();
+      t1.f1.add(o1);
+      t1.f5.add(o1);
+      t1.f3.add(o2);
    }
    public List getList() {
       return new LinkedList();

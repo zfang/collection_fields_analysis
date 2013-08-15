@@ -1,6 +1,5 @@
 package com.zfang.cf;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -69,8 +68,6 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
       new HashMap<SootMethod, CollectionVariableState[]>();
 
    public static final Map<SootField, CollectionVariableState> fieldMap = new LinkedHashMap<SootField, CollectionVariableState>();
-
-   public static final Map<SootMethod, FieldLocalStore> fieldLocalStoreMap = new LinkedHashMap<SootMethod, FieldLocalStore>();
 
    @SuppressWarnings("unchecked")
       private static final List<SootClass> ALL_COLLECTIONS = Scene.v().getActiveHierarchy()
@@ -171,7 +168,7 @@ public abstract class CollectionFieldsAnalysis extends ForwardFlowAnalysis<Unit,
    }
 
    public static void print(Object obj) {
-      print("Base" + TAG, obj);
+      print(TAG, obj);
    }
 
    public static Map<CollectionVariableState, Set<SootField>> getReverseFieldMap() {

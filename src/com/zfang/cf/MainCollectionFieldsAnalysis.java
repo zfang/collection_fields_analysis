@@ -174,8 +174,6 @@ SearchThroughFieldLocalStore:
          print(result);
          // print(fieldLocalStore.toStringDebug());
          m.addTag(new StringTag(result));
-
-         fieldLocalStoreMap.put(m, fieldLocalStore);
       }
 
 }

@@ -1,14 +1,18 @@
-[Main]: At Method <Test5: void setEntrySet()>
-[Main]: EXTERNAL fields: [0(r0):<Test5: java.util.Set _entrySet>]
-[Main]: EXTERNAL fields size: 1
-[Main]: At Method <Test5: void test(java.util.List)>
-[Main]: IMMUTABLE fields: [1(r2):<Test5: java.util.List f5>, 1(r2):<Test5: java.util.List f1>, 1(r2):<Test5: java.util.List f3>, 1(r2):<Test5: java.util.List f4>]
-[Main]: IMMUTABLE fields size: 4
-[Main]: NONALIASED fields: [1(r2):<Test5: java.util.List f2>]
-[Main]: NONALIASED fields size: 1
-[Base]: IMMUTABLE: [<Test5: java.util.List f5>, <Test5: java.util.List f1>, <Test5: java.util.List f3>, <Test5: java.util.List f4>]
-[Base]: IMMUTABLE size: 4
-[Base]: EXTERNAL: [<Test5: java.util.Set _entrySet>]
-[Base]: EXTERNAL size: 1
-[Base]: NONALIASED: [<Test5: java.util.List f2>]
-[Base]: NONALIASED size: 1
+[MainCollectionFields]: At Method <Test5: void setEntrySet()>
+[MainCollectionFields]: EXTERNAL fields: [0(r0):<Test5: java.util.Set _entrySet>]
+[MainCollectionFields]: EXTERNAL fields size: 1
+[MainCollectionFields]: At Method <Test5: void test(java.util.List)>
+[MainCollectionFields]: IMMUTABLE fields: [1(r2):<Test5: java.util.List f5>, 1(r2):<Test5: java.util.List f1>, 1(r2):<Test5: java.util.List f3>, 1(r2):<Test5: java.util.List f4>]
+[MainCollectionFields]: IMMUTABLE fields size: 4
+[MainCollectionFields]: NONALIASED fields: [1(r2):<Test5: java.util.List f2>]
+[MainCollectionFields]: NONALIASED fields size: 1
+[CollectionFields]: IMMUTABLE: [<Test5: java.util.List f5>, <Test5: java.util.List f1>, <Test5: java.util.List f3>, <Test5: java.util.List f4>]
+[CollectionFields]: IMMUTABLE size: 4
+[CollectionFields]: EXTERNAL: [<Test5: java.util.Set _entrySet>]
+[CollectionFields]: EXTERNAL size: 1
+[CollectionFields]: NONALIASED: [<Test5: java.util.List f2>]
+[CollectionFields]: NONALIASED size: 1
+[Disjointness]: At Method <Test5: void setEntrySet()>
+[Disjointness]: The normaliztion pairs are {  }
+[Disjointness]: The output for our collection is{  }
+[Disjointness]: The external collections are[1($r1)]
